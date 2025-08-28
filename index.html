@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tormenta20 — Ficha (Mobile, Preenchível)</title>
+  <style>
+    /* Mobile-first black & white theme */
+    :root{ --bg:#000; --fg:#fff; --muted:#aaa; --accent:#fff; --card:#111; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+      background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;padding:12px;
+    }
+    .app{max-width:760px;margin:0 auto}
+    header{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    header h1{font-size:18px;margin:0}
+    .controls{display:flex;gap:6px}
+    button, .btn{background:transparent;border:1px solid var(--muted);padding:6px 8px;border-radius:8px;font-size:13px;color:var(--fg)}
+    .sheet{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+    .card{background:var(--card);border-radius:10px;padding:10px;border:1px solid #333}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=number], select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #444;font-size:14px;background:#000;color:#fff}
+    .row{display:flex;gap:8px}
+    .col{flex:1}
+    .small{flex:0 0 86px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .skills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .skill{display:flex;gap:6px;align-items:center}
+    .skill input[type=number]{width:64px}
+    textarea{min-height:64px;background:#000;color:#fff;border:1px solid #444;border-radius:8px;padding:8px}
+    .muted{color:var(--muted);font-size:12px}
+    .top-row{display:flex;gap:8px}
+    @media(min-width:720px){.sheet{grid-template-columns:1fr 1fr}.small{flex:0 0 120px}}
+    .section-title{font-weight:600;margin-bottom:6px}
+    footer{margin:12px 0 40px;font-size:12px;color:var(--muted)}
+    .list{display:flex;flex-direction:column;gap:6px}
+    .list .card{padding:8px;border:1px dashed #444}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Tormenta20 — Ficha (mobile)</h1>
+      <div class="controls">
+        <button id="btnSave" class="btn">Salvar JSON</button>
+        <button id="btnLoad" class="btn">Carregar JSON</button>
+        <button id="btnPrint" class="btn">Imprimir / PDF</button>
+      </div>
+    </header>
+
+    <form id="sheet" class="sheet" autocomplete="off">
+      <!-- IDENTIFICAÇÃO -->
+      <section class="card">
+        <div class="top-row">
+          <div style="flex:1">
+            <label class="section-title">Nome do Personagem</label>
+            <input type="text" id="nome" name="nome" placeholder="Nome do personagem">
+          </div>
+          <div class="small">
+            <label class="section-title">Lv</label>
+            <input type="number" id="nivel" name="nivel" min="1" value="1">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col">
+            <label>Jogador</label>
+            <input type="text" id="jogador" name="jogador">
+          </div>
+          <div class="col">
+            <label>Raça / Origem</label>
+            <input type="text" id="raca" name="raca" placeholder="Raça - Origem">
+          </div>
+          <div class="col">
+            <label>Classe / Divindade</label>
+            <input type="text" id="classe" name="classe" placeholder="Classe - Divindade">
+          </div>
+        </div>
+      </section>
+
+      <!-- DEFESA, TAMANHO -->
+      <section class="card">
+        <div class="row">
+          <div class="col">
+            <label>Classe de Armadura (CA)</label>
+            <input type="number" id="ca" name="ca" value="10">
+          </div>
+          <div class="col">
+            <label>Bônus de Armadura</label>
+            <input type="number" id="bonusArm" name="bonusArm" value="0">
+          </div>
+          <div class="col">
+            <label>Bônus de Escudo</label>
+            <input type="number" id="bonusEsc" name="bonusEsc" value="0">
+          </div>
+        </div>
+        <div style="margin-top:8px" class="row">
+          <div class="col">
+            <label>Penalidade de Armadura</label>
+            <input type="number" id="penArm" name="penArm" value="0">
+          </div>
+          <div class="col">
+            <label>Proficiências</label>
+            <input type="text" id="profs" name="profs">
+          </div>
+          <div class="col">
+            <label>Tamanho</label>
+            <select id="tamanho" name="tamanho">
+              <option>Minúsculo</option>
+              <option>Pequeno</option>
+              <option>Médio</option>
+              <option>Grande</option>
+              <option>Enorme</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERÍCIAS (com nome para Ofícios) -->
+      <section class="card">
+        <div class="section-title">Perícias</div>
+        <div class="skills">
+          <div class="skill"><label style="flex:1">Acrobacia</label><input type="number" name="acro" value="0"></div>
+          <!-- ... outras perícias ... -->
+          <div class="skill"><label style="flex:1">Ofício 1 <input type="text" name="ofi1_nome" placeholder="Nome"></label><input type="number" name="ofi1" value="0"></div>
+          <div class="skill"><label style="flex:1">Ofício 2 <input type="text" name="ofi2_nome" placeholder="Nome"></label><input type="number" name="ofi2" value="0"></div>
+        </div>
+      </section>
+
+      <!-- ITENS -->
+      <section class="card">
+        <div class="section-title">Itens</div>
+        <div id="itens" class="list"></div>
+        <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
+      </section>
+
+      <!-- ARMAS -->
+      <section class="card">
+        <div class="section-title">Armas</div>
+        <div id="armas" class="list"></div>
+        <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
+      </section>
+
+      <!-- MAGIAS -->
+      <section class="card">
+        <div class="section-title">Magias</div>
+        <div id="magiasList" class="list"></div>
+        <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
+      </section>
+    </form>
+
+    <footer>Ficha criada para uso pessoal.</footer>
+  </div>
+
+  <input type="file" id="fileInput" accept="application/json" style="display:none">
+
+  <script>
+    function createCard(type, idx){
+      const div=document.createElement('div');
+      div.className='card';
+      if(type==='item') div.innerHTML=`<input type="text" name="item${idx}" placeholder="Item"><input type="number" name="peso${idx}" placeholder="Peso">`;
+      if(type==='arma') div.innerHTML=`<input type="text" name="armaNome${idx}" placeholder="Nome da Arma"><input type="text" name="armaDano${idx}" placeholder="Dano"><input type="number" name="armaBonus${idx}" placeholder="Bônus">`;
+      if(type==='magia') div.innerHTML=`<input type="text" name="magiaNome${idx}" placeholder="Nome da Magia"><textarea name="magiaDesc${idx}" placeholder="Efeitos"></textarea>`;
+      return div;
+    }
+
+    let itemCount=0, armaCount=0, magiaCount=0;
+    document.getElementById('addItem').onclick=()=>{
+      itemCount++;document.getElementById('itens').appendChild(createCard('item',itemCount));
+    };
+    document.getElementById('addArma').onclick=()=>{
+      armaCount++;document.getElementById('armas').appendChild(createCard('arma',armaCount));
+    };
+    document.getElementById('addMagia').onclick=()=>{
+      magiaCount++;document.getElementById('magiasList').appendChild(createCard('magia',magiaCount));
+    };
+  </script>
+</body>
+</html>

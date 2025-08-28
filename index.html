@@ -504,5 +504,52 @@
     setInterval(recalcAll, 1000);
   })();
   </script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script>
+    let originalPdf;
+  
+    // Carrega o PDF enviado
+    document.getElementById("fileLoaderPdf").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const arrayBuffer = await file.arrayBuffer();
+      originalPdf = arrayBuffer;
+      alert("PDF carregado!");
+    });
+  
+    // Preenche e baixa o PDF
+    document.getElementById("btnExportPdf").addEventListener("click", async () => {
+      if (!originalPdf) return alert("Carregue primeiro o PDF editável!");
+  
+      const pdfDoc = await PDFLib.PDFDocument.load(originalPdf);
+      const form = pdfDoc.getForm();
+  
+      // Exemplo de preenchimento
+      form.getTextField("NOME DO PERSONAGEM").setText(
+        document.getElementById("nome").value
+      );
+      form.getTextField("JOGADOR").setText(
+        document.getElementById("jogador").value
+      );
+      form.getTextField("RAÇA").setText(
+        document.getElementById("raca").value
+      );
+      form.getTextField("Lv").setText(
+        document.getElementById("nivel").value
+      );
+  
+      // TODO: repetir para cada campo do PDF (For, Des, PVs, Perícias, etc.)
+  
+      // Mantém como PDF editável
+      const pdfBytes = await pdfDoc.save();
+  
+      // Download
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "ficha-preenchida.pdf";
+      link.click();
+    });
+  </script>
 </body>
 </html>

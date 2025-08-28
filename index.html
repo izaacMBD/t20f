@@ -29,6 +29,7 @@
     .skills-container{max-height:200px;overflow-y:auto;padding:6px;border:1px solid #333;border-radius:8px;display:flex;flex-direction:column;gap:6px}
     .skill-card{background:#111;border:1px solid #333;border-radius:6px;padding:6px;display:flex;justify-content:space-between;align-items:center}
     .skill-card input{width:64px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   </style>
 </head>
 <body>
@@ -59,6 +60,26 @@
           <div class="col"><label>Jogador</label><input type="text" id="jogador" name="jogador"></div>
           <div class="col"><label>Raça / Origem</label><input type="text" id="raca" name="raca"></div>
           <div class="col"><label>Classe / Divindade</label><input type="text" id="classe" name="classe"></div>
+        </div>
+      </section>
+
+      <!-- ATRIBUTOS -->
+      <section class="card">
+        <div class="section-title">Atributos</div>
+        <div class="grid-3">
+          <div><label>Força</label><input type="number" name="forca" value="10"><label>Mod</label><input type="number" name="modFor" value="0"></div>
+          <div><label>Destreza</label><input type="number" name="destreza" value="10"><label>Mod</label><input type="number" name="modDes" value="0"></div>
+          <div><label>Constituição</label><input type="number" name="const" value="10"><label>Mod</label><input type="number" name="modCon" value="0"></div>
+        </div>
+        <div class="grid-3" style="margin-top:8px">
+          <div><label>Inteligência</label><input type="number" name="int" value="10"><label>Mod</label><input type="number" name="modInt" value="0"></div>
+          <div><label>Sabedoria</label><input type="number" name="sab" value="10"><label>Mod</label><input type="number" name="modSab" value="0"></div>
+          <div><label>Carisma</label><input type="number" name="car" value="10"><label>Mod</label><input type="number" name="modCar" value="0"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col"><label>PV Total</label><input type="number" name="hpTotal"></div>
+          <div class="col"><label>PV Atual</label><input type="number" name="hpAtual"></div>
+          <div class="col"><label>PM Total</label><input type="number" name="mpTotal"></div>
         </div>
       </section>
 

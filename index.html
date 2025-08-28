@@ -3,47 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (Mobile, Preenchível)</title>
+  <title>Tormenta20 — Ficha (Mobile, Perícias Melhoradas)</title>
   <style>
-    :root{ --bg:#000; --fg:#fff; --muted:#aaa; --card:#111; }
+    :root{ --bg:#06060a; --fg:#eef0f2; --muted:#98a0a6; --card:#0f1114; --accent:#1f8feb; }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--fg);padding:12px}
-    .app{max-width:760px;margin:0 auto}
-    header{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:var(--bg);color:var(--fg);padding:12px}
+    .app{max-width:920px;margin:0 auto}
+    header{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     header h1{font-size:18px;margin:0}
-    .controls{display:flex;gap:6px}
-    button,.btn{background:transparent;border:1px solid var(--muted);padding:6px 8px;border-radius:8px;font-size:13px;color:var(--fg)}
+    .controls{display:flex;gap:6px;flex-wrap:wrap}
+    button,.btn{background:transparent;border:1px solid var(--muted);padding:8px 10px;border-radius:8px;font-size:13px;color:var(--fg);cursor:pointer}
     .sheet{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
-    .card{background:var(--card);border-radius:10px;padding:10px;border:1px solid #333}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-    input,select,textarea{width:100%;padding:6px;border-radius:6px;border:1px solid #444;font-size:14px;background:#000;color:#fff}
+    .card{background:var(--card);border-radius:10px;padding:12px;border:1px solid #131416}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    input[type="text"],input[type="number"],select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #222;background:#05060a;color:#fff;font-size:14px}
+    input[type="checkbox"]{transform:scale(1.1);margin-right:6px}
     textarea{min-height:64px}
-    .row{display:flex;gap:8px}
-    .col{flex:1}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .col{flex:1;min-width:120px}
     .small{flex:0 0 86px}
-    .section-title{font-weight:600;margin-bottom:6px}
+    .section-title{font-weight:700;margin-bottom:6px}
     footer{margin:12px 0 40px;font-size:12px;color:var(--muted)}
-    .list{display:flex;flex-direction:column;gap:6px}
-    .list .card{padding:8px;border:1px dashed #444}
-    .skills-container{max-height:200px;overflow-y:auto;padding:6px;border:1px solid #333;border-radius:8px;display:flex;flex-direction:column;gap:6px}
-    .skill-card{background:#111;border:1px solid #333;border-radius:6px;padding:6px;display:flex;justify-content:space-between;align-items:center}
-    .skill-card input{width:64px}
+    .skills-container{max-height:340px;overflow-y:auto;padding:6px;border:1px solid #131416;border-radius:8px;display:flex;flex-direction:column;gap:6px}
+    .skill-row{background:#0b0c0f;border:1px solid #181a1d;border-radius:8px;padding:8px;display:grid;grid-template-columns:1fr 72px 72px 80px 84px;gap:8px;align-items:center}
+    .skill-row .name{font-weight:600}
+    .skill-row input[type="number"]{padding:6px;height:36px}
     .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .muted{color:var(--muted);font-size:13px}
+    .tiny{font-size:12px;color:var(--muted)}
+    .top-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    @media (max-width:720px){
+      .skill-row{grid-template-columns:1fr 60px 60px 72px 72px}
+      .small{flex:0 0 72px}
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <h1>Tormenta20 — Ficha (mobile)</h1>
+      <h1>Tormenta20 — Ficha (perícias melhoradas)</h1>
       <div class="controls">
         <button id="btnSave" class="btn">Salvar JSON</button>
         <button id="btnLoad" class="btn">Carregar JSON</button>
         <button id="btnPrint" class="btn">Imprimir / PDF</button>
+        <input id="fileLoader" type="file" accept="application/json" style="display:none">
       </div>
     </header>
 
-    <form id="sheet" class="sheet" autocomplete="off">
+    <form id="sheet" class="sheet" autocomplete="off" onsubmit="return false;">
       <!-- IDENTIFICAÇÃO -->
       <section class="card">
         <div class="row">
@@ -60,123 +68,337 @@
           <div class="col"><label>Jogador</label><input type="text" id="jogador" name="jogador"></div>
           <div class="col"><label>Raça</label><input type="text" id="raca" name="raca"></div>
         </div>
-        <div class="row" style="margin-top:8px">
-          <div class="col"><label>Origem</label><input type="text" id="origem" name="origem"></div>
-          <div class="col"><label>Classe</label><input type="text" id="classe" name="classe"></div>
-          <div class="col"><label>Divindade</label><input type="text" id="divindade" name="divindade"></div>
-        </div>
       </section>
 
       <!-- ATRIBUTOS -->
       <section class="card">
         <div class="section-title">Atributos</div>
-        <div class="grid-3">
-          <div><label>Força</label><input type="number" name="forca" value="10"><label>Mod</label><input type="number" name="modFor" value="0"></div>
-          <div><label>Destreza</label><input type="number" name="destreza" value="10"><label>Mod</label><input type="number" name="modDes" value="0"></div>
-          <div><label>Constituição</label><input type="number" name="const" value="10"><label>Mod</label><input type="number" name="modCon" value="0"></div>
-        </div>
-        <div class="grid-3" style="margin-top:8px">
-          <div><label>Inteligência</label><input type="number" name="int" value="10"><label>Mod</label><input type="number" name="modInt" value="0"></div>
-          <div><label>Sabedoria</label><input type="number" name="sab" value="10"><label>Mod</label><input type="number" name="modSab" value="0"></div>
-          <div><label>Carisma</label><input type="number" name="car" value="10"><label>Mod</label><input type="number" name="modCar" value="0"></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <div class="col"><label>PV Total</label><input type="number" name="hpTotal"></div>
-          <div class="col"><label>PV Atual</label><input type="number" name="hpAtual"></div>
-          <div class="col"><label>PM Total</label><input type="number" name="mpTotal"></div>
-        </div>
-      </section>
-
-      <!-- DEFESA -->
-      <section class="card">
-        <div class="row">
-          <div class="col"><label>Classe de Armadura (CA)</label><input type="number" id="ca" name="ca" value="10"></div>
-          <div class="col"><label>Bônus Armadura</label><input type="number" id="bonusArm" name="bonusArm" value="0"></div>
-          <div class="col"><label>Bônus Escudo</label><input type="number" id="bonusEsc" name="bonusEsc" value="0"></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <div class="col"><label>Penalidade</label><input type="number" id="penArm" name="penArm" value="0"></div>
-          <div class="col"><label>Proficiências</label><input type="text" id="profs" name="profs"></div>
-          <div class="col"><label>Tamanho</label>
-            <select id="tamanho" name="tamanho">
-              <option>Minúsculo</option><option>Pequeno</option><option>Médio</option><option>Grande</option><option>Enorme</option>
-            </select>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:120px">
+            <label>Força</label>
+            <input type="number" id="forca" name="forca" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modFor" name="modFor" value="0">
           </div>
+          <div style="flex:1;min-width:120px">
+            <label>Destreza</label>
+            <input type="number" id="destreza" name="destreza" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modDes" name="modDes" value="0">
+          </div>
+          <div style="flex:1;min-width:120px">
+            <label>Constituição</label>
+            <input type="number" id="const" name="const" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modCon" name="modCon" value="0">
+          </div>
+          <div style="flex:1;min-width:120px">
+            <label>Inteligência</label>
+            <input type="number" id="int" name="int" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modInt" name="modInt" value="0">
+          </div>
+          <div style="flex:1;min-width:120px">
+            <label>Sabedoria</label>
+            <input type="number" id="sab" name="sab" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modSab" name="modSab" value="0">
+          </div>
+          <div style="flex:1;min-width:120px">
+            <label>Carisma</label>
+            <input type="number" id="car" name="car" value="10">
+            <label class="tiny" style="margin-top:6px">Mod</label>
+            <input type="number" id="modCar" name="modCar" value="0">
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <label class="muted"> <input type="checkbox" id="autoMods"> Calcular mods automaticamente a partir do valor do atributo</label>
+          <div class="tiny muted">(mod = floor((atributo - 10) / 2) )</div>
         </div>
       </section>
 
       <!-- PERÍCIAS -->
       <section class="card">
         <div class="section-title">Perícias</div>
-        <div class="skills-container">
-          <div class="skill-card"><span>Acrobacia</span><input type="number" name="acro" value="0"></div>
-          <div class="skill-card"><span>Atletismo</span><input type="number" name="atle" value="0"></div>
-          <div class="skill-card"><span>Atuação</span><input type="number" name="atua" value="0"></div>
-          <div class="skill-card"><span>Cavalgar</span><input type="number" name="caval" value="0"></div>
-          <div class="skill-card"><span>Conhecimento</span><input type="number" name="conhec" value="0"></div>
-          <div class="skill-card"><span>Cura</span><input type="number" name="cura" value="0"></div>
-          <div class="skill-card"><span>Diplomacia</span><input type="number" name="dipl" value="0"></div>
-          <div class="skill-card"><span>Enganação</span><input type="number" name="enga" value="0"></div>
-          <div class="skill-card"><span>Fortitude</span><input type="number" name="fort" value="0"></div>
-          <div class="skill-card"><span>Furtividade</span><input type="number" name="furt" value="0"></div>
-          <div class="skill-card"><span>Iniciativa</span><input type="number" name="inic" value="0"></div>
-          <div class="skill-card"><span>Intuição</span><input type="number" name="intu" value="0"></div>
-          <div class="skill-card"><span>Investigação</span><input type="number" name="inve" value="0"></div>
-          <div class="skill-card"><span>Jogatina</span><input type="number" name="joga" value="0"></div>
-          <div class="skill-card"><span>Ladinagem</span><input type="number" name="ladi" value="0"></div>
-          <div class="skill-card"><span>Luta</span><input type="number" name="luta" value="0"></div>
-          <div class="skill-card"><span>Misticismo</span><input type="number" name="mist" value="0"></div>
-          <div class="skill-card"><span>Nobreza</span><input type="number" name="nobr" value="0"></div>
-          <div class="skill-card"><span>Ofício 1 <input type="text" name="ofi1_nome" placeholder="Nome"></span><input type="number" name="ofi1" value="0"></div>
-          <div class="skill-card"><span>Ofício 2 <input type="text" name="ofi2_nome" placeholder="Nome"></span><input type="number" name="ofi2" value="0"></div>
-          <div class="skill-card"><span>Percepção</span><input type="number" name="perc" value="0"></div>
-          <div class="skill-card"><span>Pontaria</span><input type="number" name="pont" value="0"></div>
-          <div class="skill-card"><span>Reflexos</span><input type="number" name="refl" value="0"></div>
-          <div class="skill-card"><span>Religião</span><input type="number" name="reli" value="0"></div>
-          <div class="skill-card"><span>Sobrevivência</span><input type="number" name="sobr" value="0"></div>
-          <div class="skill-card"><span>Vontade</span><input type="number" name="vont" value="0"></div>
+        <div class="tiny muted" style="margin-bottom:8px">Fórmula: <strong>½ Nível</strong> + <strong>Mod. do Atributo</strong> + <strong>Treinada (+2)</strong> + <strong>Outros</strong></div>
+
+        <div class="skills-container" id="skillsContainer">
+          <!-- linhas de perícia serão geradas por JS -->
         </div>
       </section>
 
-      <!-- ITENS -->
+      <!-- ITENS / ARMAS / MAGIAS (simples) -->
       <section class="card">
-        <div class="section-title">Itens</div>
-        <div id="itens" class="list"></div>
-        <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
+        <div class="section-title">Itens / Armas / Magias (simples)</div>
+        <div class="row">
+          <div class="col"><label>Itens (texto)</label><textarea id="itensTxt"></textarea></div>
+          <div class="col"><label>Armas (texto)</label><textarea id="armasTxt"></textarea></div>
+          <div class="col"><label>Magias (texto)</label><textarea id="magiasTxt"></textarea></div>
+        </div>
       </section>
 
-      <!-- ARMAS -->
-      <section class="card">
-        <div class="section-title">Armas</div>
-        <div id="armas" class="list"></div>
-        <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
-      </section>
-
-      <!-- MAGIAS -->
-      <section class="card">
-        <div class="section-title">Magias</div>
-        <div id="magiasList" class="list"></div>
-        <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
-      </section>
     </form>
 
-    <footer>Ficha criada para uso pessoal.</footer>
+    <footer class="tiny muted">Ficha criada para uso pessoal. Perícias baseadas no PDF fornecido. :contentReference[oaicite:1]{index=1}</footer>
   </div>
 
   <script>
-    function createCard(type, idx){
-      const div=document.createElement('div');
-      div.className='card';
-      if(type==='item') div.innerHTML=`<input type="text" name="item${idx}" placeholder="Item"><input type="number" name="peso${idx}" placeholder="Peso">`;
-      if(type==='arma') div.innerHTML=`<input type="text" name="armaNome${idx}" placeholder="Nome da Arma"><input type="text" name="armaDano${idx}" placeholder="Dano"><input type="number" name="armaBonus${idx}" placeholder="Bônus">`;
-      if(type==='magia') div.innerHTML=`<input type="text" name="magiaNome${idx}" placeholder="Nome da Magia"><textarea name="magiaDesc${idx}" placeholder="Efeitos"></textarea>`;
-      return div;
-    }
+    (function(){
+      // mapeamento das perícias -> qual mod de atributo usar (nome do input de mod)
+      const SKILLS = [
+        { key:'acro', label:'Acrobacia', attr:'modDes' },
+        { key:'ades', label:'Adestramento', attr:'modCar' },
+        { key:'atle', label:'Atletismo', attr:'modFor' },
+        { key:'atua', label:'Atuação', attr:'modCar' },
+        { key:'caval', label:'Cavalgar', attr:'modDes' },
+        { key:'conhec', label:'Conhecimento', attr:'modInt' },
+        { key:'cura', label:'Cura', attr:'modSab' },
+        { key:'dipl', label:'Diplomacia', attr:'modCar' },
+        { key:'enga', label:'Enganação', attr:'modCar' },
+        { key:'fort', label:'Fortitude', attr:'modCon' },
+        { key:'furt', label:'Furtividade', attr:'modDes' },
+        { key:'inic', label:'Iniciativa', attr:'modDes' },
+        { key:'intu', label:'Intuição', attr:'modSab' },
+        { key:'inve', label:'Investigação', attr:'modInt' },
+        { key:'joga', label:'Jogatina', attr:'modCar' },
+        { key:'ladi', label:'Ladinagem', attr:'modDes' },
+        { key:'luta', label:'Luta', attr:'modFor' },
+        { key:'mist', label:'Misticismo', attr:'modInt' },
+        { key:'nobr', label:'Nobreza', attr:'modInt' },
+        { key:'ofi1', label:'Ofício 1', attr:'modInt' },
+        { key:'ofi2', label:'Ofício 2', attr:'modInt' },
+        { key:'perc', label:'Percepção', attr:'modSab' },
+        { key:'pilo', label:'Pilotagem', attr:'modDes' },
+        { key:'pont', label:'Pontaria', attr:'modDes' },
+        { key:'refl', label:'Reflexos', attr:'modDes' },
+        { key:'reli', label:'Religião', attr:'modSab' },
+        { key:'sobr', label:'Sobrevivência', attr:'modSab' },
+        { key:'vont', label:'Vontade', attr:'modSab' }
+      ];
 
-    let itemCount=0, armaCount=0, magiaCount=0;
-    document.getElementById('addItem').onclick=()=>{itemCount++;document.getElementById('itens').appendChild(createCard('item',itemCount));};
-    document.getElementById('addArma').onclick=()=>{armaCount++;document.getElementById('armas').appendChild(createCard('arma',armaCount));};
-    document.getElementById('addMagia').onclick=()=>{magiaCount++;document.getElementById('magiasList').appendChild(createCard('magia',magiaCount));};
+      const skillsContainer = document.getElementById('skillsContainer');
+      const nivelEl = document.getElementById('nivel');
+      const autoModsEl = document.getElementById('autoMods');
+
+      // cria linhas de perícia
+      SKILLS.forEach(s=>{
+        const row = document.createElement('div');
+        row.className = 'skill-row';
+        row.id = 'skill_'+s.key;
+
+        // Nome + atributo exibido
+        const nameDiv = document.createElement('div');
+        nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
+        row.appendChild(nameDiv);
+
+        // Treinada checkbox
+        const trainedWrap = document.createElement('div');
+        trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
+        trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
+        row.appendChild(trainedWrap);
+
+        // Extra input
+        const extraWrap = document.createElement('div');
+        extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
+        row.appendChild(extraWrap);
+
+        // atributo mod (valor atual lido do form)
+        const attrWrap = document.createElement('div');
+        attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
+        row.appendChild(attrWrap);
+
+        // total
+        const totalWrap = document.createElement('div');
+        totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
+        row.appendChild(totalWrap);
+
+        skillsContainer.appendChild(row);
+      });
+
+      // função para pegar mod de atributo pelo nome (modFor, modDes...)
+      function getAttrModInputName(name){
+        return document.getElementById(name);
+      }
+
+      // recalc attribute mod fields (read-only per perícia) from global mod inputs
+      function updateAttrModsForSkills(){
+        SKILLS.forEach(s=>{
+          const attrInput = document.querySelector(`#skill_${s.key} .attrmod`);
+          const global = getAttrModInputName(s.attr);
+          attrInput.value = global ? Number(global.value || 0) : 0;
+        });
+      }
+
+      // calcula metade do nível (1/2 do nível) -> usando floor (arredondamento para baixo)
+      function halfLevel(){
+        const lv = Number(nivelEl.value || 1);
+        return Math.floor(lv/2);
+      }
+
+      // recalcula todos os totais
+      function recalcAll(){
+        updateAttrModsForSkills();
+        const half = halfLevel();
+        SKILLS.forEach(s=>{
+          const row = document.getElementById('skill_'+s.key);
+          const trained = row.querySelector('.trained').checked ? 2 : 0;
+          const extra = Number(row.querySelector('.extra').value || 0);
+          const attr = Number(row.querySelector('.attrmod').value || 0);
+          const total = half + attr + trained + extra;
+          row.querySelector('.total').value = total;
+        });
+      }
+
+      // auto-calcular mods de atributo a partir dos atributos (se checkbox ativo)
+      function maybeAutoCalcMods(){
+        if(!autoModsEl.checked) return;
+        const map = {
+          modFor: Number(document.getElementById('forca').value || 10),
+          modDes: Number(document.getElementById('destreza').value || 10),
+          modCon: Number(document.getElementById('const').value || 10),
+          modInt: Number(document.getElementById('int').value || 10),
+          modSab: Number(document.getElementById('sab').value || 10),
+          modCar: Number(document.getElementById('car').value || 10)
+        };
+        // aplicar mod = floor((score - 10) / 2)
+        Object.keys(map).forEach(k=>{
+          const v = Math.floor((map[k] - 10)/2);
+          const el = document.getElementById(k);
+          if(el) el.value = v;
+        });
+      }
+
+      // listeners: nível, atributos, mods, treinada, extra, autoMods
+      nivelEl.addEventListener('input', ()=>{ recalcAll(); });
+      document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{
+        // para campos de atributos e mods
+        el.addEventListener('input', ()=>{
+          if(autoModsEl.checked && ['forca','destreza','const','int','sab','car'].includes(el.id)){
+            maybeAutoCalcMods();
+          }
+          recalcAll();
+        });
+      });
+      // trained & extra listen (dynamic)
+      skillsContainer.addEventListener('input', (e)=>{ recalcAll(); });
+
+      autoModsEl.addEventListener('change', ()=>{
+        if(autoModsEl.checked) maybeAutoCalcMods();
+        recalcAll();
+      });
+
+      // init
+      maybeAutoCalcMods();
+      recalcAll();
+
+      // ---------- salvar/carregar JSON ----------
+      function gatherData(){
+        const data = {
+          meta: { nome: document.getElementById('nome').value || '', jogador: document.getElementById('jogador').value || '' },
+          nivel: Number(document.getElementById('nivel').value || 1),
+          atributos: {
+            forca: Number(document.getElementById('forca').value || 10),
+            destreza: Number(document.getElementById('destreza').value || 10),
+            constit: Number(document.getElementById('const').value || 10),
+            intel: Number(document.getElementById('int').value || 10),
+            sab: Number(document.getElementById('sab').value || 10),
+            car: Number(document.getElementById('car').value || 10)
+          },
+          mods: {
+            modFor: Number(document.getElementById('modFor').value || 0),
+            modDes: Number(document.getElementById('modDes').value || 0),
+            modCon: Number(document.getElementById('modCon').value || 0),
+            modInt: Number(document.getElementById('modInt').value || 0),
+            modSab: Number(document.getElementById('modSab').value || 0),
+            modCar: Number(document.getElementById('modCar').value || 0)
+          },
+          skills: {}
+        };
+        SKILLS.forEach(s=>{
+          const row = document.getElementById('skill_'+s.key);
+          data.skills[s.key] = {
+            label: s.label,
+            attr: s.attr,
+            trained: row.querySelector('.trained').checked,
+            extra: Number(row.querySelector('.extra').value || 0),
+            attrmod: Number(row.querySelector('.attrmod').value || 0),
+            total: Number(row.querySelector('.total').value || 0)
+          };
+        });
+        data.notes = { itens: document.getElementById('itensTxt').value, armas: document.getElementById('armasTxt').value, magias: document.getElementById('magiasTxt').value };
+        return data;
+      }
+
+      document.getElementById('btnSave').addEventListener('click', ()=>{
+        const data = gatherData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (document.getElementById('nome').value || 'ficha') + '.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      document.getElementById('btnLoad').addEventListener('click', ()=> document.getElementById('fileLoader').click());
+      document.getElementById('fileLoader').addEventListener('change', async (e)=>{
+        const f = e.target.files[0];
+        if(!f) return;
+        try{
+          const txt = await f.text();
+          const data = JSON.parse(txt);
+          // popular campos principais
+          if(data.nivel) document.getElementById('nivel').value = data.nivel;
+          if(data.atributos){
+            ['forca','destreza','const','int','sab','car'].forEach(k=>{
+              if(data.atributos[k] !== undefined) document.getElementById(k === 'const' ? 'const' : k).value = data.atributos[k];
+            });
+          }
+          if(data.mods){
+            Object.keys(data.mods).forEach(k=>{
+              const el = document.getElementById(k);
+              if(el) el.value = data.mods[k];
+            });
+          }
+          // skills
+          if(data.skills){
+            Object.keys(data.skills).forEach(sk=>{
+              const sdata = data.skills[sk];
+              const row = document.getElementById('skill_'+sk);
+              if(row){
+                row.querySelector('.trained').checked = !!sdata.trained;
+                row.querySelector('.extra').value = sdata.extra || 0;
+                // attrmod is derived; set if present
+                if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
+              }
+            });
+          }
+          // notes
+          if(data.notes){
+            if(data.notes.itens !== undefined) document.getElementById('itensTxt').value = data.notes.itens;
+            if(data.notes.armas !== undefined) document.getElementById('armasTxt').value = data.notes.armas;
+            if(data.notes.magias !== undefined) document.getElementById('magiasTxt').value = data.notes.magias;
+          }
+          // recalc after loading
+          maybeAutoCalcMods();
+          recalcAll();
+          alert('Ficha carregada.');
+        }catch(err){
+          alert('Erro ao carregar JSON: ' + err.message);
+        } finally {
+          e.target.value = '';
+        }
+      });
+
+      // imprimir
+      document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+      // exportar recalc automático periodicamente (segurança)
+      setInterval(recalcAll, 1000);
+    })();
   </script>
 </body>
 </html>

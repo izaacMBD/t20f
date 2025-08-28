@@ -88,13 +88,13 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <div style="flex:1;min-width:120px">
             <label>Força</label>
-            <input type="number" id="forca" name="for" value="10" step="1" min="1">
+            <input type="number" id="forca" name="forca" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modFor" name="modFor" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Destreza</label>
-            <input type="number" id="destreza" name="des" value="10" step="1" min="1">
+            <input type="number" id="destreza" name="destreza" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modDes" name="modDes" value="0">
           </div>
@@ -461,7 +461,7 @@
     // atualiza campos de mod (modFor/modDes/...) a partir dos atributos caso autoMods ativo
     function maybeAutoCalcMods(){
       const auto = !!autoModsEl.checked;
-      const attrs = ['for','des','const','int','sab','car'];
+      const attrs = ['forca','destreza','const','int','sab','car'];
       attrs.forEach(attrId=>{
         const score = Number(document.getElementById(attrId).value || 0);
         const modId = 'mod' + (attrId === 'const' ? 'Con' : attrId[0].toUpperCase() + (attrId.slice(1)));

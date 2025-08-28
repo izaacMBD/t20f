@@ -1,181 +1,805 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (Mobile, Preenchível)</title>
-  <style>
-    /* Mobile-first black & white theme */
-    :root{ --bg:#000; --fg:#fff; --muted:#aaa; --accent:#fff; --card:#111; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;padding:12px;
-    }
-    .app{max-width:760px;margin:0 auto}
-    header{display:flex;gap:8px;align-items:center;justify-content:space-between}
-    header h1{font-size:18px;margin:0}
-    .controls{display:flex;gap:6px}
-    button, .btn{background:transparent;border:1px solid var(--muted);padding:6px 8px;border-radius:8px;font-size:13px;color:var(--fg)}
-    .sheet{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
-    .card{background:var(--card);border-radius:10px;padding:10px;border:1px solid #333}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-    input[type=text], input[type=number], select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #444;font-size:14px;background:#000;color:#fff}
-    .row{display:flex;gap:8px}
-    .col{flex:1}
-    .small{flex:0 0 86px}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    .skills{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .skill{display:flex;gap:6px;align-items:center}
-    .skill input[type=number]{width:64px}
-    textarea{min-height:64px;background:#000;color:#fff;border:1px solid #444;border-radius:8px;padding:8px}
-    .muted{color:var(--muted);font-size:12px}
-    .top-row{display:flex;gap:8px}
-    @media(min-width:720px){.sheet{grid-template-columns:1fr 1fr}.small{flex:0 0 120px}}
-    .section-title{font-weight:600;margin-bottom:6px}
-    footer{margin:12px 0 40px;font-size:12px;color:var(--muted)}
-    .list{display:flex;flex-direction:column;gap:6px}
-    .list .card{padding:8px;border:1px dashed #444}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ficha T20 — Editor Responsivo (único arquivo)</title>
+<style>
+  :root{
+    --bg:#fff; --fg:#111; --muted:#666; --accent:#0b84ff;
+    --card:#f7f7f7; --glass:rgba(255,255,255,0.6);
+    --radius:12px;
+  }
+  .dark{
+    --bg:#0b0b0b; --fg:#f3f3f3; --muted:#999; --accent:#6fb8ff;
+    --card:#111214; --glass:rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:linear-gradient(180deg,var(--bg),var(--card)); color:var(--fg);
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    padding:12px; gap:12px; display:flex; flex-direction:column;
+  }
+  header{
+    display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px;
+    position:sticky; top:0; background:transparent; z-index:5;
+  }
+  h1{font-size:1rem;margin:0}
+  .controls{display:flex;gap:8px;align-items:center}
+  .btn{
+    background:var(--accent); color:white; border:0; padding:10px 12px;border-radius:10px; cursor:pointer;
+    font-weight:700; font-size:0.9rem; box-shadow:0 6px 18px rgba(11,132,255,0.08);
+  }
+  .ghost{background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--fg);padding:8px 10px;border-radius:10px}
+  main{display:grid;grid-template-columns: 1fr 360px; gap:14px; align-items:start;}
+  @media(max-width:980px){ main{grid-template-columns:1fr 320px} }
+  @media(max-width:760px){ main{grid-template-columns:1fr} header{flex-direction:column; align-items:stretch} }
+  .card{background:var(--card);padding:12px;border-radius:var(--radius); box-shadow: 0 6px 18px rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.02)}
+  .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  label{font-size:0.82rem;color:var(--muted);min-width:110px}
+  input[type="number"], input[type="text"], select, textarea{
+    padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);flex:1;background:transparent;color:var(--fg);
+    font-size:0.95rem;
+  }
+  textarea{min-height:80px;resize:vertical}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:340px;overflow:auto;padding-right:6px}
+  .skill{display:flex;gap:8px;align-items:center;background:linear-gradient(90deg,var(--glass),transparent);padding:8px;border-radius:10px}
+  .small{font-size:0.8rem;color:var(--muted)}
+  .muted{color:var(--muted)}
+  .stat{font-weight:700;font-size:1.05rem}
+  .accent{color:var(--accent);font-weight:600}
+  .mini{font-size:0.78rem;padding:6px 8px;border-radius:8px;border:1px dashed var(--muted);background:transparent}
+  footer{margin-top:12px;font-size:0.78rem;color:var(--muted);text-align:center}
+  .topline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .split{display:flex;gap:8px;align-items:center}
+  .result{background:linear-gradient(180deg,rgba(11,132,255,0.06),transparent);padding:8px;border-radius:8px}
+  .checkbox{display:flex;gap:6px;align-items:center}
+  .smalltag{font-size:0.75rem;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.04)}
+  .savebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .help{font-size:0.85rem;color:var(--muted);margin-top:8px}
+  .compact label{min-width:80px}
+  .skill .name{flex:1}
+  .skill .value{width:64px;text-align:right}
+  .controls .toggle{display:flex;gap:6px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--muted);cursor:pointer}
+  /* small screens */
+  @media(max-width:520px){
+    label{min-width:80px;font-size:0.78rem}
+    .card{padding:10px}
+    .btn{padding:9px 10px;font-size:0.9rem}
+    .ghost{padding:7px 8px}
+    input[type="number"], input[type="text"], select, textarea{padding:9px;font-size:0.92rem}
+    .skills{grid-template-columns:repeat(1,minmax(0,1fr))}
+  }
+
+  /* PDF inspector */
+  #pdfInfo{max-height:180px;overflow:auto;padding:8px;border-radius:8px;border:1px dashed var(--muted);background:linear-gradient(180deg,transparent,var(--glass));}
+  .fieldRow{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(0,0,0,0.03);padding:6px 4px}
+  .mapSelect{min-width:120px}
+  .mutedSmall{font-size:0.78rem;color:var(--muted)}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Tormenta20 — Ficha (mobile)</h1>
-      <div class="controls">
-        <button id="btnSave" class="btn">Salvar JSON</button>
-        <button id="btnLoad" class="btn">Carregar JSON</button>
-        <button id="btnPrint" class="btn">Imprimir / PDF</button>
-      </div>
-    </header>
-
-    <form id="sheet" class="sheet" autocomplete="off">
-      <!-- IDENTIFICAÇÃO -->
-      <section class="card">
-        <div class="top-row">
-          <div style="flex:1">
-            <label class="section-title">Nome do Personagem</label>
-            <input type="text" id="nome" name="nome" placeholder="Nome do personagem">
-          </div>
-          <div class="small">
-            <label class="section-title">Lv</label>
-            <input type="number" id="nivel" name="nivel" min="1" value="1">
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <div class="col">
-            <label>Jogador</label>
-            <input type="text" id="jogador" name="jogador">
-          </div>
-          <div class="col">
-            <label>Raça / Origem</label>
-            <input type="text" id="raca" name="raca" placeholder="Raça - Origem">
-          </div>
-          <div class="col">
-            <label>Classe / Divindade</label>
-            <input type="text" id="classe" name="classe" placeholder="Classe - Divindade">
-          </div>
-        </div>
-      </section>
-
-      <!-- DEFESA, TAMANHO -->
-      <section class="card">
-        <div class="row">
-          <div class="col">
-            <label>Classe de Armadura (CA)</label>
-            <input type="number" id="ca" name="ca" value="10">
-          </div>
-          <div class="col">
-            <label>Bônus de Armadura</label>
-            <input type="number" id="bonusArm" name="bonusArm" value="0">
-          </div>
-          <div class="col">
-            <label>Bônus de Escudo</label>
-            <input type="number" id="bonusEsc" name="bonusEsc" value="0">
-          </div>
-        </div>
-        <div style="margin-top:8px" class="row">
-          <div class="col">
-            <label>Penalidade de Armadura</label>
-            <input type="number" id="penArm" name="penArm" value="0">
-          </div>
-          <div class="col">
-            <label>Proficiências</label>
-            <input type="text" id="profs" name="profs">
-          </div>
-          <div class="col">
-            <label>Tamanho</label>
-            <select id="tamanho" name="tamanho">
-              <option>Minúsculo</option>
-              <option>Pequeno</option>
-              <option>Médio</option>
-              <option>Grande</option>
-              <option>Enorme</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <!-- PERÍCIAS (com nome para Ofícios) -->
-      <section class="card">
-        <div class="section-title">Perícias</div>
-        <div class="skills">
-          <div class="skill"><label style="flex:1">Acrobacia</label><input type="number" name="acro" value="0"></div>
-          <!-- ... outras perícias ... -->
-          <div class="skill"><label style="flex:1">Ofício 1 <input type="text" name="ofi1_nome" placeholder="Nome"></label><input type="number" name="ofi1" value="0"></div>
-          <div class="skill"><label style="flex:1">Ofício 2 <input type="text" name="ofi2_nome" placeholder="Nome"></label><input type="number" name="ofi2" value="0"></div>
-        </div>
-      </section>
-
-      <!-- ITENS -->
-      <section class="card">
-        <div class="section-title">Itens</div>
-        <div id="itens" class="list"></div>
-        <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
-      </section>
-
-      <!-- ARMAS -->
-      <section class="card">
-        <div class="section-title">Armas</div>
-        <div id="armas" class="list"></div>
-        <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
-      </section>
-
-      <!-- MAGIAS -->
-      <section class="card">
-        <div class="section-title">Magias</div>
-        <div id="magiasList" class="list"></div>
-        <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
-      </section>
-    </form>
-
-    <footer>Ficha criada para uso pessoal.</footer>
+<header>
+  <div>
+    <h1>Ficha Tormenta20 — Editor (único arquivo)</h1>
+    <div class="mutedSmall">Responsivo • Tema claro/escuro • Calcula perícias, Defesa, carga e penalidade de armadura • Preenche PDF editável</div>
   </div>
+  <div class="controls">
+    <div class="toggle ghost" id="themeToggle">Alternar Preto / Branco</div>
+    <button class="btn" id="saveBtn">Salvar local</button>
+    <button class="ghost" id="exportBtn">Exportar JSON</button>
+  </div>
+</header>
 
-  <input type="file" id="fileInput" accept="application/json" style="display:none">
+<main>
+  <section class="card" id="left">
+    <div class="topline" style="justify-content:space-between;">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="smalltag" id="sheetTitle">Ficha Genérica</div>
+        <div class="small muted">Nível</div>
+        <input type="number" id="level" value="1" min="1" max="20" style="width:68px">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="small muted">RAÇA / CLASSE</div>
+        <input id="race" placeholder="Raça" style="width:140px">
+        <input id="class" placeholder="Classe" style="width:140px">
+      </div>
+    </div>
 
-  <script>
-    function createCard(type, idx){
-      const div=document.createElement('div');
-      div.className='card';
-      if(type==='item') div.innerHTML=`<input type="text" name="item${idx}" placeholder="Item"><input type="number" name="peso${idx}" placeholder="Peso">`;
-      if(type==='arma') div.innerHTML=`<input type="text" name="armaNome${idx}" placeholder="Nome da Arma"><input type="text" name="armaDano${idx}" placeholder="Dano"><input type="number" name="armaBonus${idx}" placeholder="Bônus">`;
-      if(type==='magia') div.innerHTML=`<input type="text" name="magiaNome${idx}" placeholder="Nome da Magia"><textarea name="magiaDesc${idx}" placeholder="Efeitos"></textarea>`;
-      return div;
+    <hr style="margin:12px 0;border:none;border-top:1px solid rgba(0,0,0,0.06)">
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="row"><label>Atributos</label><div class="small muted">valores (0 = média humana)</div></div>
+        <div class="grid-2">
+          <div>
+            <div class="row"><label>Força</label><input type="number" id="for" value="0" step="1"></div>
+            <div class="row"><label>Destreza</label><input type="number" id="des" value="0" step="1"></div>
+            <div class="row"><label>Constituição</label><input type="number" id="con" value="0" step="1"></div>
+          </div>
+          <div>
+            <div class="row"><label>Inteligência</label><input type="number" id="int" value="0" step="1"></div>
+            <div class="row"><label>Sabedoria</label><input type="number" id="sab" value="0" step="1"></div>
+            <div class="row"><label>Carisma</label><input type="number" id="car" value="0" step="1"></div>
+          </div>
+        </div>
+        <div class="help">Observação: Tormenta20 usa os atributos diretamente nos testes (não há 'modificador separado').</div>
+      </div>
+
+      <div class="card">
+        <div class="row"><label>Armadura</label>
+          <select id="armorSelect">
+            <option value="">Sem armadura (Base 10)</option>
+            <option value="1">Armadura acolchoada (+1, penalidade 0)</option>
+            <option value="2">Couro (+2, penalidade 0)</option>
+            <option value="3">Couro batido (+3, penalidade -1)</option>
+            <option value="4">Gibão de peles (+4, penalidade -3)</option>
+            <option value="5">Couraça (+5, penalidade -4)</option>
+            <option value="6">Brunea (+5, penalidade -2)</option>
+            <option value="7">Cota de malha (+6, penalidade -2)</option>
+            <option value="8">Loriga segmentada (+7, penalidade -3)</option>
+            <option value="9">Meia armadura (+8, penalidade -4)</option>
+            <option value="10">Armadura completa (+10, penalidade -5)</option>
+          </select>
+        </div>
+        <div class="row"><label>Escudo</label>
+          <select id="shieldSelect">
+            <option value="0">Sem escudo</option>
+            <option value="1">Escudo leve (+1)</option>
+            <option value="2">Escudo pesado (+2)</option>
+          </select>
+        </div>
+
+        <div class="row"><label>Proficiência em armadura?</label>
+          <select id="armorProf">
+            <option value="1">Sim</option>
+            <option value="0">Não (aplica penalidade)</option>
+          </select>
+        </div>
+
+        <div class="row"><label>Base de Defesa (CA)</label>
+          <div class="stat result" id="defenseResult">10</div>
+        </div>
+
+        <div class="row"><label>Penalidade de Armadura</label><div id="armPenalty" class="small muted">0</div></div>
+        <div class="help">Penalidade se aplica em Acrobacia, Furtividade, Ladinagem e Atletismo (natação).</div>
+      </div>
+    </div>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid rgba(0,0,0,0.06)">
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div><strong>Perícias</strong> <span class="small muted">Clique em "Treinado" para aplicar ½ do nível</span></div>
+        <div class="small muted">Penalidade de Armadura aplicada automaticamente</div>
+      </div>
+
+      <div class="skills" id="skillsList"></div>
+
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn" id="autoTrainBtn">Marcar todas não-treinadas</button>
+        <button class="ghost" id="clearAllSkills">Limpar | Reset perícias</button>
+      </div>
+    </div>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid rgba(0,0,0,0.06)">
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="row"><label>Pontos de Vida (PV)</label><input id="hp" type="number" value="" placeholder="Total (opcional)"></div>
+        <div class="row"><label>Pontos de Mana (PM)</label><input id="mp" type="number" value="" placeholder="Total (opcional)"></div>
+        <div class="help">Se preferir automatizar PVs por classe: informe abaixo o PV inicial e PV por nível.</div>
+        <div class="row"><label>PV inicial</label><input id="hp_base" type="number" placeholder="ex: 10"></div>
+        <div class="row"><label>PV por nível</label><input id="hp_per_level" type="number" placeholder="ex: 4"></div>
+      </div>
+
+      <div class="card">
+        <div class="row"><label>Carga Total (kg)</label><input id="totalWeight" type="number" value="0"></div>
+        <div class="row"><label>Carga Máx</label><div id="carryMax" class="stat">30</div></div>
+        <div class="row"><label>Levantar</label><div id="lift" class="stat">100</div></div>
+        <div class="help">Carga máxima = 3x Força. Se exceder, mostra aviso.</div>
+      </div>
+    </div>
+
+    <hr style="margin:12px 0;border:none;border-top:1px solid rgba(0,0,0,0.06)">
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>Magias / Poderes</strong>
+        <div class="small muted">adicione nome, custo PM, alcance e efeito</div>
+      </div>
+      <div id="spellsArea" style="margin-top:10px"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" id="addSpell">+ Adicionar Magia</button>
+        <button class="ghost" id="clearSpells">Limpar Magias</button>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="card" id="right">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div class="row"><label>Nome do Personagem</label><input id="charName" placeholder="Nome"></div>
+        <div class="row"><label>Jogador</label><input id="playerName" placeholder="Seu nome"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Resumo Rápido</strong>
+          <div class="small muted">Atualiza automaticamente</div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="row"><label>DEFESA (CA)</label><div id="CA" class="stat">10</div></div>
+          <div class="row"><label>Iniciativa (Des)</label><div id="init" class="stat">0</div></div>
+          <div class="row"><label>Prof. (½ nível)</label><div id="prof" class="stat">0</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Ferramentas</strong>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="ghost" id="importBtn">Importar JSON</button>
+            <input type="file" id="fileInput" accept=".json" style="display:none">
+            <button class="ghost" id="resetBtn">Resetar ficha</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,0.06)">
+
+          <div><strong>PDF Editável</strong></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <input type="file" id="pdfInput" accept="application/pdf" class="ghost" style="padding:8px">
+            <button class="btn" id="fillPdfBtn">Preencher e baixar PDF</button>
+          </div>
+          <div class="help">Carregue um PDF editável (fillable). O sistema tenta mapear nomes de campos automaticamente.</div>
+          <div style="margin-top:8px">
+            <div class="mutedSmall">Campos detectados no PDF (inspeção):</div>
+            <div id="pdfInfo" class="mutedSmall">Nenhum PDF carregado.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <strong>Notas / Histórico</strong>
+        <textarea id="notes" placeholder="Histórico, aliados, itens..."></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:8px">
+          <div class="small muted">Salva com a ficha local</div>
+          <div id="lastSaved" class="small muted">—</div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</main>
+
+<footer>
+  Feito com base no Livro Básico Tormenta20. Você pode editar qualquer campo; o sistema calcula perícias e Defesa automaticamente e preenche PDFs editáveis quando disponíveis.
+</footer>
+
+<!-- pdf-lib (CDN) -->
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
+<script>
+/* --- Dados e mapeamentos --- */
+const skills = [
+  {id:"acro", name:"Acrobacia", attr:"des"},
+  {id:"ades", name:"Adestramento", attr:"car"},
+  {id:"atle", name:"Atletismo", attr:"for"},
+  {id:"atua", name:"Atuação", attr:"car"},
+  {id:"cava", name:"Cavalgar", attr:"des"},
+  {id:"conh", name:"Conhecimento", attr:"int"},
+  {id:"cura", name:"Cura", attr:"sab"},
+  {id:"dipl", name:"Diplomacia", attr:"car"},
+  {id:"enga", name:"Enganação", attr:"car"},
+  {id:"fort", name:"Fortitude", attr:"con"},
+  {id:"furt", name:"Furtividade", attr:"des"},
+  {id:"guer", name:"Guerra", attr:"int"},
+  {id:"inic", name:"Iniciativa", attr:"des"},
+  {id:"inti", name:"Intimidação", attr:"car"},
+  {id:"intu", name:"Intuição", attr:"sab"},
+  {id:"inve", name:"Investigação", attr:"int"},
+  {id:"joga", name:"Jogatina", attr:"car"},
+  {id:"ladi", name:"Ladinagem", attr:"des"},
+  {id:"luta", name:"Luta", attr:"for"},
+  {id:"mist", name:"Misticismo", attr:"int"},
+  {id:"nobr", name:"Nobreza", attr:"int"},
+  {id:"ofi1", name:"Ofício (1)", attr:"int"},
+  {id:"ofi2", name:"Ofício (2)", attr:"int"},
+  {id:"perc", name:"Percepção", attr:"sab"},
+  {id:"pilo", name:"Pilotagem", attr:"des"},
+  {id:"pont", name:"Pontaria", attr:"des"},
+  {id:"refl", name:"Reflexos", attr:"des"},
+  {id:"reli", name:"Religião", attr:"sab"},
+  {id:"sobr", name:"Sobrevivência", attr:"sab"},
+  {id:"vont", name:"Vontade", attr:"sab"}
+];
+
+const armorTable = {
+  "": {bonus:0, penalty:0, heavy:false},
+  "1": {name:"Armadura acolchoada", bonus:1, penalty:0, heavy:false},
+  "2": {name:"Couro", bonus:2, penalty:0, heavy:false},
+  "3": {name:"Couro batido", bonus:3, penalty:-1, heavy:false},
+  "4": {name:"Gibão de peles", bonus:4, penalty:-3, heavy:false},
+  "5": {name:"Couraça", bonus:5, penalty:-4, heavy:false},
+  "6": {name:"Brunea", bonus:5, penalty:-2, heavy:true},
+  "7": {name:"Cota de malha", bonus:6, penalty:-2, heavy:true},
+  "8": {name:"Loriga segmentada", bonus:7, penalty:-3, heavy:true},
+  "9": {name:"Meia armadura", bonus:8, penalty:-4, heavy:true},
+  "10": {name:"Armadura completa", bonus:10, penalty:-5, heavy:true}
+};
+
+const shieldTable = {"0":0,"1":1,"2":2};
+
+/* --- Utilidades DOM --- */
+const el = id=>document.getElementById(id);
+const getAttr = ()=>({
+  for: Number(el('for').value||0),
+  des: Number(el('des').value||0),
+  con: Number(el('con').value||0),
+  int: Number(el('int').value||0),
+  sab: Number(el('sab').value||0),
+  car: Number(el('car').value||0)
+});
+const getLevel = ()=>Math.max(1, Number(el('level').value||1));
+
+/* --- Monta lista de perícias --- */
+function buildSkills(){
+  const container = el('skillsList');
+  container.innerHTML='';
+  skills.forEach(s=>{
+    const div = document.createElement('div');
+    div.className='skill';
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:center;width:100%">
+        <div style="display:flex;flex-direction:column;min-width:160px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <strong class="name">${s.name}</strong>
+            <div class="small muted">(${s.attr.toUpperCase()})</div>
+          </div>
+          <div class="small muted">Atributo: <span class="attrName">${s.attr}</span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end">
+          <label class="checkbox"><input type="checkbox" data-skill="${s.id}" class="trained"> Treinado</label>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="small muted">Total</div>
+            <div class="value stat" id="val_${s.id}">0</div>
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+buildSkills();
+
+/* --- Calculos principais --- */
+function computeProf(){ return Math.floor(getLevel()/2); /* 1/2 do nível */ }
+
+function computeArmor(){
+  const a = el('armorSelect').value;
+  const sh = Number(el('shieldSelect').value||0);
+  const prof = Number(el('armorProf').value||1);
+  const armor = armorTable[a] || armorTable[""];
+  let penalty = armor.penalty;
+  // if not proficient, keep penalty (no extra effect here, but fields will show)
+  if(!prof) penalty = armor.penalty;
+  return {armor, shieldBonus: shieldTable[sh||0]||0, penalty};
+}
+
+function computeCA(){
+  const base = 10;
+  const {armor, shieldBonus} = computeArmor();
+  const isHeavy = armor.heavy;
+  const dex = Number(el('des').value||0);
+  const dexPart = isHeavy ? 0 : dex;
+  const ca = base + (armor.bonus||0) + (shieldBonus||0) + dexPart;
+  return Math.max(0, ca);
+}
+
+/* calcula perícias */
+function computeSkills(){
+  const attrs = getAttr();
+  const lvl = getLevel();
+  const prof = computeProf();
+  const armInfo = computeArmor();
+  const armPenalty = armInfo.armor.penalty || 0;
+  skills.forEach(s=>{
+    const trainedBox = document.querySelector(`input.trained[data-skill="${s.id}"]`);
+    const trained = trainedBox && trainedBox.checked;
+    const attrVal = Number(attrs[s.attr]||0);
+    let total = attrVal;
+    if(trained) total += prof;
+    const penalizedSkills = ['acro','furt','ladi','atle'];
+    if(penalizedSkills.includes(s.id)){
+      total += armPenalty;
     }
+    if(!Number(el('armorProf').value) && (s.attr==='for' || s.attr==='des')){
+      total += armPenalty;
+    }
+    const out = el(`val_${s.id}`);
+    if(out) out.textContent = (total>=0?'+':'')+total;
+  });
+  el('prof').textContent = prof;
+  el('CA').textContent = computeCA();
+  el('defenseResult').textContent = computeCA();
+  el('armPenalty').textContent = (armInfo.armor.penalty||0);
+  el('init').textContent = Number(el('des').value||0);
+}
 
-    let itemCount=0, armaCount=0, magiaCount=0;
-    document.getElementById('addItem').onclick=()=>{
-      itemCount++;document.getElementById('itens').appendChild(createCard('item',itemCount));
-    };
-    document.getElementById('addArma').onclick=()=>{
-      armaCount++;document.getElementById('armas').appendChild(createCard('arma',armaCount));
-    };
-    document.getElementById('addMagia').onclick=()=>{
-      magiaCount++;document.getElementById('magiasList').appendChild(createCard('magia',magiaCount));
-    };
-  </script>
+/* --- Spells area handling --- */
+function addSpellRow(obj){
+  const area = el('spellsArea');
+  const id = 'sp'+Math.random().toString(36).slice(2,8);
+  const div = document.createElement('div');
+  div.className='card';
+  div.style.marginBottom='8px';
+  div.id=id;
+  div.innerHTML = `
+    <div class="row"><label>Nome</label><input class="sp_name" value="${obj?.name||''}" placeholder="Nome da magia"></div>
+    <div class="row"><label>PM</label><input class="sp_cost" type="number" value="${obj?.cost||0}"></div>
+    <div class="row"><label>Alcance</label><input class="sp_range" value="${obj?.range||''}"></div>
+    <div class="row"><label>Efeito</label><textarea class="sp_effect" placeholder="Descrição">${obj?.effect||''}</textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="ghost" onclick="document.getElementById('${id}').remove()">Remover</button>
+    </div>
+  `;
+  area.appendChild(div);
+}
+
+/* --- Persistência / Import Export --- */
+function saveLocal(){
+  const state = gatherState();
+  localStorage.setItem('t20_ficha', JSON.stringify(state));
+  el('lastSaved').textContent = new Date().toLocaleString();
+  alert('Ficha salva no armazenamento local do navegador.');
+}
+function loadLocal(){
+  const raw = localStorage.getItem('t20_ficha');
+  if(!raw) return false;
+  try{
+    const st = JSON.parse(raw);
+    applyState(st);
+    el('lastSaved').textContent = 'carregado (local)';
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+function gatherState(){
+  const spells = Array.from(document.querySelectorAll('#spellsArea .card')).map(c=>{
+    return {
+      name: c.querySelector('.sp_name')?.value||'',
+      cost: Number(c.querySelector('.sp_cost')?.value||0),
+      range: c.querySelector('.sp_range')?.value||'',
+      effect: c.querySelector('.sp_effect')?.value||''
+    }
+  });
+  const trained = {};
+  document.querySelectorAll('input.trained').forEach(i=> trained[i.dataset.skill]=i.checked);
+  return {
+    meta: {name: el('charName').value, player: el('playerName').value, race: el('race').value, class: el('class').value, notes: el('notes').value},
+    attrs: {for:el('for').value, des:el('des').value, con:el('con').value, int:el('int').value, sab:el('sab').value, car:el('car').value},
+    level: el('level').value,
+    armorSelect: el('armorSelect').value, shieldSelect: el('shieldSelect').value, armorProf: el('armorProf').value,
+    hp: el('hp').value, mp: el('mp').value, hp_base: el('hp_base').value, hp_per_level: el('hp_per_level').value,
+    weight: el('totalWeight').value,
+    trained, spells
+  };
+}
+function applyState(s){
+  if(!s) return;
+  el('charName').value = s.meta?.name||'';
+  el('playerName').value = s.meta?.player||'';
+  el('race').value = s.meta?.race||'';
+  el('class').value = s.meta?.class||'';
+  el('notes').value = s.meta?.notes||'';
+  if(s.attrs){ el('for').value=s.attrs.for; el('des').value=s.attrs.des; el('con').value=s.attrs.con; el('int').value=s.attrs.int; el('sab').value=s.attrs.sab; el('car').value=s.attrs.car; }
+  if(s.level) el('level').value = s.level;
+  if(s.armorSelect) el('armorSelect').value = s.armorSelect;
+  if(s.shieldSelect) el('shieldSelect').value = s.shieldSelect;
+  if(s.armorProf!==undefined) el('armorProf').value = s.armorProf;
+  el('hp').value = s.hp||'';
+  el('mp').value = s.mp||'';
+  el('hp_base').value = s.hp_base||'';
+  el('hp_per_level').value = s.hp_per_level||'';
+  el('totalWeight').value = s.weight||0;
+  if(s.trained){
+    document.querySelectorAll('input.trained').forEach(i=> i.checked = !!s.trained[i.dataset.skill]);
+  }
+  el('spellsArea').innerHTML='';
+  if(Array.isArray(s.spells)) s.spells.forEach(sp=>addSpellRow(sp));
+  computeAll();
+}
+
+function exportJSON(){
+  const s = gatherState();
+  const blob = new Blob([JSON.stringify(s, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download='ficha_t20.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const s = JSON.parse(e.target.result);
+      applyState(s);
+      alert('Ficha importada com sucesso.');
+    }catch(err){ alert('Arquivo inválido.'); }
+  };
+  reader.readAsText(file);
+}
+
+/* --- Carry compute --- */
+function computeCarry(){
+  const weight = Number(el('totalWeight').value||0);
+  const str = Number(el('for').value||0);
+  const carryMax = Math.max(0, 3 * str);
+  el('carryMax').textContent = carryMax;
+  el('lift').textContent = Math.max(0, 10*str);
+  if(weight > carryMax) {
+    el('carryMax').parentNode.style.color = 'var(--muted)';
+  } else el('carryMax').parentNode.style.color = '';
+}
+
+/* --- Events & bindings --- */
+function computeAll(){ computeSkills(); computeCarry(); }
+
+document.querySelectorAll('input[type="number"], input[type="text"], select, textarea').forEach(i=>{
+  i.addEventListener('input', ()=>{ computeAll(); });
+});
+document.getElementById('level').addEventListener('input', ()=>{ computeAll(); });
+
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  document.body.classList.toggle('dark');
+});
+
+document.getElementById('saveBtn').addEventListener('click', saveLocal);
+document.getElementById('exportBtn').addEventListener('click', exportJSON);
+document.getElementById('addSpell').addEventListener('click', ()=>addSpellRow());
+document.getElementById('clearSpells').addEventListener('click', ()=>{ if(confirm('Remover todas as magias?')) el('spellsArea').innerHTML=''; });
+document.getElementById('autoTrainBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('input.trained').forEach(i=> i.checked=false);
+  computeAll();
+});
+document.getElementById('clearAllSkills').addEventListener('click', ()=>{
+  if(confirm('Desmarcar todas as perícias como treinadas?')) {
+    document.querySelectorAll('input.trained').forEach(i=> i.checked=false);
+    computeAll();
+  }
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Resetar ficha para valores iniciais? Isso limpa todos os campos.')) {
+    localStorage.removeItem('t20_ficha');
+    location.reload();
+  }
+});
+document.getElementById('importBtn').addEventListener('click', ()=> el('fileInput').click());
+el('fileInput').addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(f) importJSON(f);
+});
+document.addEventListener('change', (e)=>{
+  if(e.target.matches('input.trained')) computeAll();
+});
+
+/* initial spells area if empty */
+if(!document.querySelectorAll('#spellsArea .card').length) {
+  addSpellRow({name:'',cost:0,range:'',effect:''});
+}
+
+/* initial load */
+if(!loadLocal()){
+  computeAll();
+}
+
+/* --- PDF handling with pdf-lib --- */
+let loadedPdfBytes = null;
+let pdfFieldNames = []; // array of {name,type}
+const pdfInfoEl = el('pdfInfo');
+const pdfInput = el('pdfInput');
+const fillPdfBtn = el('fillPdfBtn');
+
+pdfInput.addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const bytes = await f.arrayBuffer();
+  loadedPdfBytes = bytes;
+  try{
+    const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+    let form = null;
+    try{ form = pdfDoc.getForm(); } catch(e){ form=null; }
+    pdfFieldNames = [];
+    if(form){
+      const fields = form.getFields();
+      fields.forEach(field=>{
+        const name = field.getName();
+        // detect type by constructor name fallback
+        let type = 'text';
+        try{
+          const ctor = field.constructor && field.constructor.name;
+          if(ctor) type = ctor.replace('PDF', '').replace('Field','').toLowerCase();
+        }catch(e){}
+        pdfFieldNames.push({name,type});
+      });
+    } else {
+      // no form present
+      pdfFieldNames = [];
+    }
+    renderPdfFields();
+  }catch(err){
+    console.error(err);
+    pdfInfoEl.textContent = 'Erro ao ler o PDF (talvez não seja editável).';
+  }
+});
+
+/* Render PDF fields and attempt auto mapping */
+function renderPdfFields(){
+  if(!pdfFieldNames.length){
+    pdfInfoEl.innerHTML = '<div>Nenhum campo detectado no PDF ou PDF não editável.</div>';
+    return;
+  }
+  // try to auto-map values for preview
+  const state = gatherState();
+  const flat = {
+    'nome': state.meta?.name || '',
+    'jogador': state.meta?.player || '',
+    'raça': state.meta?.race || '',
+    'raca': state.meta?.race || '',
+    'classe': state.meta?.class || '',
+    'nivel': state.level||'',
+    'forca': state.attrs?.for||'',
+    'for': state.attrs?.for||'',
+    'des': state.attrs?.des||'',
+    'destreza': state.attrs?.des||'',
+    'con': state.attrs?.con||'',
+    'constituicao': state.attrs?.con||'',
+    'int': state.attrs?.int||'',
+    'inteligencia': state.attrs?.int||'',
+    'sab': state.attrs?.sab||'',
+    'sabedoria': state.attrs?.sab||'',
+    'car': state.attrs?.car||'',
+    'carisma': state.attrs?.car||'',
+    'pv': state.hp||'',
+    'pm': state.mp||'',
+    'defesa': computeCA(),
+    'ca': computeCA()
+  };
+  // also map skills by name
+  skills.forEach(s=>{
+    flat[s.name.toLowerCase().replace(/\s+/g,'')] = document.querySelector(`#val_${s.id}`)?.textContent || '';
+    flat[s.id.toLowerCase()] = document.querySelector(`#val_${s.id}`)?.textContent || '';
+  });
+
+  // build UI: name + best matched preview
+  const frag = document.createDocumentFragment();
+  pdfFieldNames.forEach(f=>{
+    const row = document.createElement('div');
+    row.className='fieldRow';
+    const left = document.createElement('div');
+    left.innerHTML = `<strong>${f.name}</strong><div class="mutedSmall">${f.type}</div>`;
+    const right = document.createElement('div');
+    // best match search: try direct, then normalized contains
+    const keyLower = f.name.toLowerCase();
+    let val = '';
+    if(flat[keyLower] !== undefined) val = flat[keyLower];
+    else {
+      // best fuzzy: check if any flat key is substring of field name or viceversa
+      for(const k in flat){
+        if(k && (keyLower.includes(k) || k.includes(keyLower))){ val = flat[k]; break; }
+      }
+    }
+    right.innerHTML = `<div class="mutedSmall">Preview: ${val}</div>`;
+    row.appendChild(left);
+    row.appendChild(right);
+    frag.appendChild(row);
+  });
+  pdfInfoEl.innerHTML = '';
+  pdfInfoEl.appendChild(frag);
+}
+
+/* Fill PDF with current state and trigger download */
+fillPdfBtn.addEventListener('click', async ()=>{
+  if(!loadedPdfBytes){ alert('Nenhum PDF carregado. Faça upload de um PDF editável primeiro.'); return; }
+  try{
+    const pdfDoc = await PDFLib.PDFDocument.load(loadedPdfBytes);
+    let form = null;
+    try{ form = pdfDoc.getForm(); } catch(e){ form=null; }
+    if(!form){ alert('PDF não possui campos editáveis (form).'); return; }
+    const state = gatherState();
+    const attrs = state.attrs || {};
+    const prof = Math.floor(Number(state.level||1)/2);
+
+    // prepare a small mapping: common pdf field name variants -> our values
+    const map = {};
+    // meta
+    map['nome'] = state.meta?.name || '';
+    map['nome do personagem'] = state.meta?.name || '';
+    map['jogador'] = state.meta?.player || '';
+    map['raça'] = state.meta?.race || '';
+    map['raca'] = state.meta?.race || '';
+    map['classe'] = state.meta?.class || '';
+    map['lv'] = state.level||'';
+    map['nivel'] = state.level||'';
+    // attrs common
+    map['forca'] = attrs.for || attrs['for'] || '';
+    map['for'] = attrs.for || '';
+    map['destreza'] = attrs.des || attrs['des'] || '';
+    map['des'] = attrs.des || '';
+    map['constituicao'] = attrs.con || attrs['con'] || '';
+    map['con'] = attrs.con || '';
+    map['inteligencia'] = attrs.int || attrs['int'] || '';
+    map['int'] = attrs.int || '';
+    map['sabedoria'] = attrs.sab || attrs['sab'] || '';
+    map['sab'] = attrs.sab || '';
+    map['carisma'] = attrs.car || attrs['car'] || '';
+    map['car'] = attrs.car || '';
+    // others
+    map['pv'] = state.hp || '';
+    map['pvs'] = state.hp || '';
+    map['pm'] = state.mp || '';
+    map['ca'] = computeCA();
+    map['defesa'] = computeCA();
+    map['prof'] = prof;
+
+    // skills: add both name lower and id
+    skills.forEach(s=>{
+      const val = document.querySelector(`#val_${s.id}`)?.textContent || '';
+      map[s.id.toLowerCase()] = val;
+      map[s.name.toLowerCase().replace(/\s+/g,'')] = val;
+    });
+
+    // set fields by best match
+    const fields = form.getFields();
+    fields.forEach(field=>{
+      const name = field.getName();
+      const key = name.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+      // find exact key
+      let found = null;
+      if(map[key] !== undefined) found = map[key];
+      else {
+        // search map keys for substring
+        for(const mk in map){
+          if(!mk) continue;
+          const mkn = mk.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+          if(name.toLowerCase().includes(mk) || key.includes(mkn) || mk.includes(key)){ found = map[mk]; break; }
+        }
+      }
+      if(found === null || found === undefined) found = '';
+      try{
+        // attempt to set value generically
+        if(field.setText) field.setText(String(found));
+        else if(field.setTextValue) field.setTextValue(String(found));
+        else if(field.set) field.set(String(found));
+      }catch(e){
+        try{ field.setText(String(found)); }catch(e2){ /* ignore */ }
+      }
+    });
+
+    // ensure form update appearances
+    form.updateFieldAppearances();
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (state.meta?.name ? state.meta.name.replace(/\s+/g,'_') : 'ficha') + '_preenchida.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+  }catch(err){
+    console.error(err);
+    alert('Erro ao preencher o PDF. Veja o console para detalhes.');
+  }
+});
+
+/* Small UX: recompute preview when state changes so PDF preview updates */
+const stateInputs = ['charName','playerName','race','class','level','for','des','con','int','sab','car','hp','mp','totalWeight'];
+stateInputs.forEach(id=> el(id).addEventListener('input', ()=>{ if(pdfFieldNames.length) renderPdfFields(); }));
+
+</script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (perícias + CRUD cards)</title>
+  <title>Tormenta20 — Ficha (perícias + mods automáticos)</title>
   <style>
     :root{ --bg:#06060a; --fg:#eef0f2; --muted:#98a0a6; --card:#0f1114; --accent:#1f8feb; }
     *{box-sizing:border-box}
@@ -39,6 +39,7 @@
     .card .card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
     .card .display-row{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}
     .card .display-row .label{color:var(--muted);font-size:12px;width:80px}
+    input[readonly]{opacity:0.85;background:#0a0a0c}
     @media (max-width:720px){
       .skill-row{grid-template-columns:1fr 60px 60px 72px 72px}
       .small{flex:0 0 72px}
@@ -48,7 +49,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>Tormenta20 — Ficha (perícias + CRUD cards)</h1>
+      <h1>Tormenta20 — Ficha (perícias + mods automáticos)</h1>
       <div class="controls">
         <button id="btnSave" class="btn">Salvar JSON</button>
         <button id="btnLoad" class="btn">Carregar JSON</button>
@@ -58,42 +59,27 @@
     </header>
 
     <form id="sheet" class="sheet" autocomplete="off" onsubmit="return false;">
-      <!-- IDENTIFICAÇÃO --> 
-      <section class="card"> 
-        <div class="row"> 
-            <div class="col"> 
-                <label class="section-title">Nome do Personagem</label> 
-                <input type="text" id="nome" name="nome" placeholder="Nome do personagem"> 
-            </div> 
-        <div class="small"> 
-            <label class="section-title">Lv</label> 
-            <input type="number" id="nivel" name="nivel" min="1" value="1"> 
-        </div> 
-        </div> 
-        <div class="row" style="margin-top:8px"> 
-            <div class="col">
-                <label>Jogador</label>
-                <input type="text" id="jogador" name="jogador">
-            </div> 
-            <div class="col">
-                <label>Raça</label>
-                <input type="text" id="raca" name="raca">
-            </div> 
-        </div> 
-        <div class="row" style="margin-top:8px"> 
-            <div class="col">
-                <label>Origem</label>
-                <input type="text" id="origem" name="origem">
-            </div> 
-            <div class="col">
-                <label>Classe</label>
-                <input type="text" id="classe" name="classe">
-            </div> 
-            <div class="col">
-                <label>Divindade</label>
-                <input type="text" id="divindade" name="divindade">
-            </div> 
-        </div> 
+      <!-- IDENTIFICAÇÃO -->
+      <section class="card">
+        <div class="row">
+          <div class="col">
+            <label class="section-title">Nome do Personagem</label>
+            <input type="text" id="nome" name="nome" placeholder="Nome do personagem">
+          </div>
+          <div class="small">
+            <label class="section-title">Lv</label>
+            <input type="number" id="nivel" name="nivel" min="1" value="1">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col"><label>Jogador</label><input type="text" id="jogador" name="jogador"></div>
+          <div class="col"><label>Raça</label><input type="text" id="raca" name="raca"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col"><label>Origem</label><input type="text" id="origem" name="origem"></div>
+          <div class="col"><label>Classe</label><input type="text" id="classe" name="classe"></div>
+          <div class="col"><label>Divindade</label><input type="text" id="divindade" name="divindade"></div>
+        </div>
       </section>
 
       <!-- ATRIBUTOS -->
@@ -102,45 +88,47 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <div style="flex:1;min-width:120px">
             <label>Força</label>
-            <input type="number" id="forca" name="forca" value="10">
+            <input type="number" id="forca" name="forca" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modFor" name="modFor" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Destreza</label>
-            <input type="number" id="destreza" name="destreza" value="10">
+            <input type="number" id="destreza" name="destreza" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modDes" name="modDes" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Constituição</label>
-            <input type="number" id="const" name="const" value="10">
+            <input type="number" id="const" name="const" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modCon" name="modCon" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Inteligência</label>
-            <input type="number" id="int" name="int" value="10">
+            <input type="number" id="int" name="int" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modInt" name="modInt" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Sabedoria</label>
-            <input type="number" id="sab" name="sab" value="10">
+            <input type="number" id="sab" name="sab" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modSab" name="modSab" value="0">
           </div>
           <div style="flex:1;min-width:120px">
             <label>Carisma</label>
-            <input type="number" id="car" name="car" value="10">
+            <input type="number" id="car" name="car" value="10" step="1" min="1">
             <label class="tiny" style="margin-top:6px">Mod</label>
             <input type="number" id="modCar" name="modCar" value="0">
           </div>
         </div>
 
         <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
-          <label class="muted"> <input type="checkbox" id="autoMods"> Calcular mods automaticamente a partir do valor do atributo</label>
-          <div class="tiny muted">(mod = floor((atributo - 10) / 2) )</div>
+          <label class="muted">
+            <input type="checkbox" id="autoMods"> Calcular mods automaticamente a partir do valor do atributo
+          </label>
+          <div class="tiny muted">(tabela padrão — 1:-5, 2-3:-4, 4-5:-3, 6-7:-2, 8-9:-1, 10-11:0, 12-13:+1, ... 24-25:+7; acima segue regra)</div>
         </div>
       </section>
 
@@ -179,472 +167,485 @@
       </section>
     </form>
 
-    <footer class="tiny muted">Atualizado: metade do nível e mod de atributo SOMENTE para perícias treinadas. Cards editáveis e removíveis.</footer>
+    <footer class="tiny muted">Atualizado: mods automáticos seguindo a tabela fornecida.</footer>
   </div>
 
   <script>
-    /* ---------- criação e CRUD dos cards (Itens / Armas / Magias) ---------- */
-    (function(){
-      let itemCount = 0, armaCount = 0, magiaCount = 0;
+  /* ---------- cards CRUD (itens/armas/magias) - unchanged ---------- */
+  (function(){
+    let itemCount = 0, armaCount = 0, magiaCount = 0;
+    function createCard(type, idx, data = {}) {
+      const div = document.createElement('div');
+      div.className = 'card small';
+      div.dataset.type = type;
+      div.dataset.idx = idx;
 
-      function createCard(type, idx, data = {}) {
-        const div = document.createElement('div');
-        div.className = 'card small';
-        div.dataset.type = type;
-        div.dataset.idx = idx;
+      const display = document.createElement('div');
+      display.className = 'display';
+      display.style.display = data.viewOnly ? 'flex' : 'none';
 
-        // display area (view mode)
-        const display = document.createElement('div');
-        display.className = 'display';
-        display.style.display = data.viewOnly ? 'flex' : 'none';
-        display.innerHTML = ''; // will fill below
+      const edit = document.createElement('div');
+      edit.className = 'edit';
+      edit.style.display = data.viewOnly ? 'none' : 'block';
 
-        // edit area (inputs)
-        const edit = document.createElement('div');
-        edit.className = 'edit';
-        edit.style.display = data.viewOnly ? 'none' : 'block';
-        edit.innerHTML = ''; // will fill below
+      const actions = document.createElement('div');
+      actions.className = 'card-actions';
 
-        // actions
-        const actions = document.createElement('div');
-        actions.className = 'card-actions';
+      const btnEdit = document.createElement('button');
+      btnEdit.type = 'button';
+      btnEdit.className = 'btn sm edit-btn';
+      btnEdit.textContent = data.viewOnly ? 'Editar' : 'Salvar';
 
-        const btnEdit = document.createElement('button');
-        btnEdit.type = 'button';
-        btnEdit.className = 'btn sm edit-btn';
-        btnEdit.textContent = data.viewOnly ? 'Editar' : 'Salvar';
+      const btnRemove = document.createElement('button');
+      btnRemove.type = 'button';
+      btnRemove.className = 'btn sm remove-btn';
+      btnRemove.textContent = 'Remover';
 
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn sm remove-btn';
-        btnRemove.textContent = 'Remover';
+      actions.appendChild(btnEdit);
+      actions.appendChild(btnRemove);
 
-        actions.appendChild(btnEdit);
-        actions.appendChild(btnRemove);
+      function escapeAttr(v){ if(v===undefined||v===null) return ''; return String(v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function escapeHtml(v){ if(v===undefined||v===null) return ''; return String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        // build content depending on type
-        if(type === 'item'){
-          const nome = data.nome || '';
-          const peso = data.peso !== undefined ? data.peso : '';
-
-          display.innerHTML = `
-            <div class="display-row">
-              <div class="label">Item</div>
-              <div><strong class="display-name">${escapeHtml(nome)}</strong></div>
-              <div class="label">Peso</div>
-              <div><span class="display-peso">${escapeHtml(String(peso))}</span></div>
-            </div>`;
-
-          edit.innerHTML = `
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" class="field-nome" placeholder="Item" value="${escapeAttr(nome)}">
-              <input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}">
-            </div>`;
-        } else if(type === 'arma'){
-          const nome = data.nome || '';
-          const dano = data.dano || '';
-          const bonus = data.bonus !== undefined ? data.bonus : '';
-
-          display.innerHTML = `
-            <div class="display-row">
-              <div class="label">Nome</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
-              <div class="label">Dano</div><div><span class="display-dano">${escapeHtml(dano)}</span></div>
-              <div class="label">Bônus</div><div><span class="display-bonus">${escapeHtml(String(bonus))}</span></div>
-            </div>`;
-
-          edit.innerHTML = `
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" class="field-nome" placeholder="Nome da Arma" value="${escapeAttr(nome)}">
-              <input type="text" class="field-dano" placeholder="Dano" value="${escapeAttr(dano)}">
-              <input type="number" class="field-bonus" placeholder="Bônus" value="${escapeAttr(bonus)}">
-            </div>`;
-        } else if(type === 'magia'){
-          const nome = data.nome || '';
-          const desc = data.desc || '';
-
-          display.innerHTML = `
-            <div class="display-row">
-              <div class="label">Magia</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
-              <div style="width:100%;margin-top:6px"><div class="label">Efeito</div><div class="display-desc">${escapeHtml(desc)}</div></div>
-            </div>`;
-
-          edit.innerHTML = `
-            <div style="display:flex;gap:8px;flex-direction:column">
-              <input type="text" class="field-nome" placeholder="Nome da Magia" value="${escapeAttr(nome)}">
-              <textarea class="field-desc" placeholder="Efeitos">${escapeAttr(desc)}</textarea>
-            </div>`;
-        }
-
-        div.appendChild(display);
-        div.appendChild(edit);
-        div.appendChild(actions);
-
-        // behavior: edit/save toggle
-        btnEdit.addEventListener('click', ()=>{
-          const isEditing = edit.style.display !== 'none';
-          if(isEditing){
-            // salvar: pegar valores e mostrar display
-            if(type === 'item'){
-              const nomeVal = div.querySelector('.field-nome').value || '';
-              const pesoVal = div.querySelector('.field-peso').value || '';
-              div.querySelector('.display-name').textContent = nomeVal;
-              div.querySelector('.display-peso').textContent = pesoVal;
-            } else if(type === 'arma'){
-              const nomeVal = div.querySelector('.field-nome').value || '';
-              const danoVal = div.querySelector('.field-dano').value || '';
-              const bonusVal = div.querySelector('.field-bonus').value || '';
-              div.querySelector('.display-nome').textContent = nomeVal;
-              div.querySelector('.display-dano').textContent = danoVal;
-              div.querySelector('.display-bonus').textContent = bonusVal;
-            } else if(type === 'magia'){
-              const nomeVal = div.querySelector('.field-nome').value || '';
-              const descVal = div.querySelector('.field-desc').value || '';
-              div.querySelector('.display-nome').textContent = nomeVal;
-              div.querySelector('.display-desc').textContent = descVal;
-            }
-            // toggle to view
-            edit.style.display = 'none';
-            display.style.display = 'flex';
-            btnEdit.textContent = 'Editar';
-          } else {
-            // switch to edit mode
-            edit.style.display = 'block';
-            display.style.display = 'none';
-            btnEdit.textContent = 'Salvar';
-          }
-        });
-
-        // remove
-        btnRemove.addEventListener('click', ()=>{
-          if(confirm('Remover este ' + type + '?')) div.remove();
-        });
-
-        return div;
+      if(type === 'item'){
+        const nome = data.nome || '';
+        const peso = data.peso !== undefined ? data.peso : '';
+        display.innerHTML = `
+          <div class="display-row">
+            <div class="label">Item</div>
+            <div><strong class="display-name">${escapeHtml(nome)}</strong></div>
+            <div class="label">Peso</div>
+            <div><span class="display-peso">${escapeHtml(String(peso))}</span></div>
+          </div>`;
+        edit.innerHTML = `
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" class="field-nome" placeholder="Item" value="${escapeAttr(nome)}">
+            <input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}">
+          </div>`;
+      } else if(type === 'arma'){
+        const nome = data.nome || '';
+        const dano = data.dano || '';
+        const bonus = data.bonus !== undefined ? data.bonus : '';
+        display.innerHTML = `
+          <div class="display-row">
+            <div class="label">Nome</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
+            <div class="label">Dano</div><div><span class="display-dano">${escapeHtml(dano)}</span></div>
+            <div class="label">Bônus</div><div><span class="display-bonus">${escapeHtml(String(bonus))}</span></div>
+          </div>`;
+        edit.innerHTML = `
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="text" class="field-nome" placeholder="Nome da Arma" value="${escapeAttr(nome)}">
+            <input type="text" class="field-dano" placeholder="Dano" value="${escapeAttr(dano)}">
+            <input type="number" class="field-bonus" placeholder="Bônus" value="${escapeAttr(bonus)}">
+          </div>`;
+      } else if(type === 'magia'){
+        const nome = data.nome || '';
+        const desc = data.desc || '';
+        display.innerHTML = `
+          <div class="display-row">
+            <div class="label">Magia</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
+            <div style="width:100%;margin-top:6px"><div class="label">Efeito</div><div class="display-desc">${escapeHtml(desc)}</div></div>
+          </div>`;
+        edit.innerHTML = `
+          <div style="display:flex;gap:8px;flex-direction:column">
+            <input type="text" class="field-nome" placeholder="Nome da Magia" value="${escapeAttr(nome)}">
+            <textarea class="field-desc" placeholder="Efeitos">${escapeAttr(desc)}</textarea>
+          </div>`;
       }
 
-      // helpers to escape values into attributes/HTML safely
-      function escapeAttr(v){ if(v === undefined || v === null) return ''; return String(v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-      function escapeHtml(v){ if(v === undefined || v === null) return ''; return String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      div.appendChild(display);
+      div.appendChild(edit);
+      div.appendChild(actions);
 
-      // inicializadores dos botões de adicionar
-      document.addEventListener('DOMContentLoaded', ()=>{
+      btnEdit.addEventListener('click', ()=>{
+        const isEditing = edit.style.display !== 'none';
+        if(isEditing){
+          if(type === 'item'){
+            const nomeVal = div.querySelector('.field-nome').value || '';
+            const pesoVal = div.querySelector('.field-peso').value || '';
+            div.querySelector('.display-name').textContent = nomeVal;
+            div.querySelector('.display-peso').textContent = pesoVal;
+          } else if(type === 'arma'){
+            const nomeVal = div.querySelector('.field-nome').value || '';
+            const danoVal = div.querySelector('.field-dano').value || '';
+            const bonusVal = div.querySelector('.field-bonus').value || '';
+            div.querySelector('.display-nome').textContent = nomeVal;
+            div.querySelector('.display-dano').textContent = danoVal;
+            div.querySelector('.display-bonus').textContent = bonusVal;
+          } else if(type === 'magia'){
+            const nomeVal = div.querySelector('.field-nome').value || '';
+            const descVal = div.querySelector('.field-desc').value || '';
+            div.querySelector('.display-nome').textContent = nomeVal;
+            div.querySelector('.display-desc').textContent = descVal;
+          }
+          edit.style.display = 'none';
+          display.style.display = 'flex';
+          btnEdit.textContent = 'Editar';
+        } else {
+          edit.style.display = 'block';
+          display.style.display = 'none';
+          btnEdit.textContent = 'Salvar';
+        }
+      });
+
+      btnRemove.addEventListener('click', ()=>{
+        if(confirm('Remover este ' + type + '?')) div.remove();
+      });
+
+      return div;
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const itensEl = document.getElementById('itens');
+      const armasEl = document.getElementById('armas');
+      const magiasEl = document.getElementById('magiasList');
+
+      document.getElementById('addItem').addEventListener('click', ()=>{
+        itemCount++;
+        itensEl.appendChild(createCard('item', itemCount, { nome:'', peso:'' }));
+      });
+      document.getElementById('addArma').addEventListener('click', ()=>{
+        armaCount++;
+        armasEl.appendChild(createCard('arma', armaCount, { nome:'', dano:'', bonus:'' }));
+      });
+      document.getElementById('addMagia').addEventListener('click', ()=>{
+        magiaCount++;
+        magiasEl.appendChild(createCard('magia', magiaCount, { nome:'', desc:'' }));
+      });
+    });
+
+    window._cardsAPI = {
+      createCard,
+      getAllData: function(){
+        const itens = Array.from(document.querySelectorAll('#itens .card')).map(c=>{
+          if(c.dataset.type !== 'item') return null;
+          const name = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value || '');
+          const peso = c.querySelector('.display-peso') ? c.querySelector('.display-peso').textContent : (c.querySelector('.field-peso')?.value || '');
+          return { nome: name, peso: peso };
+        }).filter(Boolean);
+        const armas = Array.from(document.querySelectorAll('#armas .card')).map(c=>{
+          if(c.dataset.type !== 'arma') return null;
+          const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
+          const dano = c.querySelector('.display-dano') ? c.querySelector('.display-dano').textContent : (c.querySelector('.field-dano')?.value || '');
+          const bonus = c.querySelector('.display-bonus') ? c.querySelector('.display-bonus').textContent : (c.querySelector('.field-bonus')?.value || '');
+          return { nome, dano, bonus };
+        }).filter(Boolean);
+        const magias = Array.from(document.querySelectorAll('#magiasList .card')).map(c=>{
+          if(c.dataset.type !== 'magia') return null;
+          const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
+          const desc = c.querySelector('.display-desc') ? c.querySelector('.display-desc').textContent : (c.querySelector('.field-desc')?.value || '');
+          return { nome, desc };
+        }).filter(Boolean);
+        return { itens, armas, magias };
+      },
+      loadAllData: function(obj){
         const itensEl = document.getElementById('itens');
         const armasEl = document.getElementById('armas');
         const magiasEl = document.getElementById('magiasList');
-
-        document.getElementById('addItem').addEventListener('click', ()=>{
-          itemCount++;
-          const card = createCard('item', itemCount, { nome:'', peso:'' });
-          itensEl.appendChild(card);
-        });
-
-        document.getElementById('addArma').addEventListener('click', ()=>{
-          armaCount++;
-          const card = createCard('arma', armaCount, { nome:'', dano:'', bonus:'' });
-          armasEl.appendChild(card);
-        });
-
-        document.getElementById('addMagia').addEventListener('click', ()=>{
-          magiaCount++;
-          const card = createCard('magia', magiaCount, { nome:'', desc:'' });
-          magiasEl.appendChild(card);
-        });
-      });
-
-      // expose some functions to the global scope so main script can serialize
-      window._cardsAPI = {
-        createCard, // createCard(type, idx, data)
-        getAllData: function(){
-          // return arrays of current cards
-          const itens = Array.from(document.querySelectorAll('#itens .card')).map(c=>{
-            if(c.dataset.type !== 'item') return null;
-            // prefer current displayed value if in view mode, else input values
-            const name = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value || '');
-            const peso = c.querySelector('.display-peso') ? c.querySelector('.display-peso').textContent : (c.querySelector('.field-peso')?.value || '');
-            return { nome: name, peso: peso };
-          }).filter(Boolean);
-          const armas = Array.from(document.querySelectorAll('#armas .card')).map(c=>{
-            if(c.dataset.type !== 'arma') return null;
-            const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
-            const dano = c.querySelector('.display-dano') ? c.querySelector('.display-dano').textContent : (c.querySelector('.field-dano')?.value || '');
-            const bonus = c.querySelector('.display-bonus') ? c.querySelector('.display-bonus').textContent : (c.querySelector('.field-bonus')?.value || '');
-            return { nome, dano, bonus };
-          }).filter(Boolean);
-          const magias = Array.from(document.querySelectorAll('#magiasList .card')).map(c=>{
-            if(c.dataset.type !== 'magia') return null;
-            const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
-            const desc = c.querySelector('.display-desc') ? c.querySelector('.display-desc').textContent : (c.querySelector('.field-desc')?.value || '');
-            return { nome, desc };
-          }).filter(Boolean);
-          return { itens, armas, magias };
-        },
-        loadAllData: function(obj){
-          const itensEl = document.getElementById('itens');
-          const armasEl = document.getElementById('armas');
-          const magiasEl = document.getElementById('magiasList');
-          itensEl.innerHTML = ''; armasEl.innerHTML = ''; magiasEl.innerHTML = '';
-          itemCount = 0; armaCount = 0; magiaCount = 0;
-          if(obj.itens && Array.isArray(obj.itens)){
-            obj.itens.forEach(it=>{
-              itemCount++;
-              const card = createCard('item', itemCount, { nome: it.nome || '', peso: it.peso || '', viewOnly: true });
-              itensEl.appendChild(card);
-            });
-          }
-          if(obj.armas && Array.isArray(obj.armas)){
-            obj.armas.forEach(a=>{
-              armaCount++;
-              const card = createCard('arma', armaCount, { nome: a.nome || '', dano: a.dano || '', bonus: a.bonus || '', viewOnly: true });
-              armasEl.appendChild(card);
-            });
-          }
-          if(obj.magias && Array.isArray(obj.magias)){
-            obj.magias.forEach(m=>{
-              magiaCount++;
-              const card = createCard('magia', magiaCount, { nome: m.nome || '', desc: m.desc || '', viewOnly: true });
-              magiasEl.appendChild(card);
-            });
-          }
+        itensEl.innerHTML = ''; armasEl.innerHTML = ''; magiasEl.innerHTML = '';
+        itemCount = armaCount = magiaCount = 0;
+        if(obj.itens && Array.isArray(obj.itens)){
+          obj.itens.forEach(it=>{
+            itemCount++;
+            itensEl.appendChild(createCard('item', itemCount, { nome: it.nome || '', peso: it.peso || '', viewOnly: true }));
+          });
         }
-      };
-    })();
+        if(obj.armas && Array.isArray(obj.armas)){
+          obj.armas.forEach(a=>{
+            armaCount++;
+            armasEl.appendChild(createCard('arma', armaCount, { nome: a.nome || '', dano: a.dano || '', bonus: a.bonus || '', viewOnly: true }));
+          });
+        }
+        if(obj.magias && Array.isArray(obj.magias)){
+          obj.magias.forEach(m=>{
+            magiaCount++;
+            magiasEl.appendChild(createCard('magia', magiaCount, { nome: m.nome || '', desc: m.desc || '', viewOnly: true }));
+          });
+        }
+      }
+    };
+  })();
   </script>
 
-  <!-- ---------- script principal (perícias, salvar/carregar/imprimir) ---------- -->
+  <!-- ---------- script principal (perícias, mods automáticos, salvar/carregar/imprimir) ---------- -->
   <script>
-    (function(){
-      const SKILLS = [
-        { key:'acro', label:'Acrobacia', attr:'modDes' },
-        { key:'ades', label:'Adestramento', attr:'modCar' },
-        { key:'atle', label:'Atletismo', attr:'modFor' },
-        { key:'atua', label:'Atuação', attr:'modCar' },
-        { key:'caval', label:'Cavalgar', attr:'modDes' },
-        { key:'conhec', label:'Conhecimento', attr:'modInt' },
-        { key:'cura', label:'Cura', attr:'modSab' },
-        { key:'dipl', label:'Diplomacia', attr:'modCar' },
-        { key:'enga', label:'Enganação', attr:'modCar' },
-        { key:'fort', label:'Fortitude', attr:'modCon' },
-        { key:'furt', label:'Furtividade', attr:'modDes' },
-        { key:'inic', label:'Iniciativa', attr:'modDes' },
-        { key:'intu', label:'Intuição', attr:'modSab' },
-        { key:'inve', label:'Investigação', attr:'modInt' },
-        { key:'joga', label:'Jogatina', attr:'modCar' },
-        { key:'ladi', label:'Ladinagem', attr:'modDes' },
-        { key:'luta', label:'Luta', attr:'modFor' },
-        { key:'mist', label:'Misticismo', attr:'modInt' },
-        { key:'nobr', label:'Nobreza', attr:'modInt' },
-        { key:'ofi1', label:'Ofício 1', attr:'modInt' },
-        { key:'ofi2', label:'Ofício 2', attr:'modInt' },
-        { key:'perc', label:'Percepção', attr:'modSab' },
-        { key:'pilo', label:'Pilotagem', attr:'modDes' },
-        { key:'pont', label:'Pontaria', attr:'modDes' },
-        { key:'refl', label:'Reflexos', attr:'modDes' },
-        { key:'reli', label:'Religião', attr:'modSab' },
-        { key:'sobr', label:'Sobrevivência', attr:'modSab' },
-        { key:'vont', label:'Vontade', attr:'modSab' }
-      ];
+  (function(){
+    const SKILLS = [
+      { key:'acro', label:'Acrobacia', attr:'modDes' },
+      { key:'ades', label:'Adestramento', attr:'modCar' },
+      { key:'atle', label:'Atletismo', attr:'modFor' },
+      { key:'atua', label:'Atuação', attr:'modCar' },
+      { key:'caval', label:'Cavalgar', attr:'modDes' },
+      { key:'conhec', label:'Conhecimento', attr:'modInt' },
+      { key:'cura', label:'Cura', attr:'modSab' },
+      { key:'dipl', label:'Diplomacia', attr:'modCar' },
+      { key:'enga', label:'Enganação', attr:'modCar' },
+      { key:'fort', label:'Fortitude', attr:'modCon' },
+      { key:'furt', label:'Furtividade', attr:'modDes' },
+      { key:'inic', label:'Iniciativa', attr:'modDes' },
+      { key:'intu', label:'Intuição', attr:'modSab' },
+      { key:'inve', label:'Investigação', attr:'modInt' },
+      { key:'joga', label:'Jogatina', attr:'modCar' },
+      { key:'ladi', label:'Ladinagem', attr:'modDes' },
+      { key:'luta', label:'Luta', attr:'modFor' },
+      { key:'mist', label:'Misticismo', attr:'modInt' },
+      { key:'nobr', label:'Nobreza', attr:'modInt' },
+      { key:'ofi1', label:'Ofício 1', attr:'modInt' },
+      { key:'ofi2', label:'Ofício 2', attr:'modInt' },
+      { key:'perc', label:'Percepção', attr:'modSab' },
+      { key:'pilo', label:'Pilotagem', attr:'modDes' },
+      { key:'pont', label:'Pontaria', attr:'modDes' },
+      { key:'refl', label:'Reflexos', attr:'modDes' },
+      { key:'reli', label:'Religião', attr:'modSab' },
+      { key:'sobr', label:'Sobrevivência', attr:'modSab' },
+      { key:'vont', label:'Vontade', attr:'modSab' }
+    ];
 
-      const skillsContainer = document.getElementById('skillsContainer');
-      const nivelEl = document.getElementById('nivel');
-      const autoModsEl = document.getElementById('autoMods');
+    const skillsContainer = document.getElementById('skillsContainer');
+    const nivelEl = document.getElementById('nivel');
+    const autoModsEl = document.getElementById('autoMods');
 
-      // renderiza as linhas de perícia
-      SKILLS.forEach(s=>{
-        const row = document.createElement('div');
-        row.className = 'skill-row';
-        row.id = 'skill_'+s.key;
+    // renderiza perícias
+    SKILLS.forEach(s=>{
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.id = 'skill_'+s.key;
 
-        const nameDiv = document.createElement('div');
-        nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
-        row.appendChild(nameDiv);
+      const nameDiv = document.createElement('div');
+      nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
+      row.appendChild(nameDiv);
 
-        const trainedWrap = document.createElement('div');
-        trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
-        trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
-        row.appendChild(trainedWrap);
+      const trainedWrap = document.createElement('div');
+      trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
+      trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
+      row.appendChild(trainedWrap);
 
-        const extraWrap = document.createElement('div');
-        extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
-        row.appendChild(extraWrap);
+      const extraWrap = document.createElement('div');
+      extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
+      row.appendChild(extraWrap);
 
-        const attrWrap = document.createElement('div');
-        attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
-        row.appendChild(attrWrap);
+      const attrWrap = document.createElement('div');
+      attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
+      row.appendChild(attrWrap);
 
-        const totalWrap = document.createElement('div');
-        totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
-        row.appendChild(totalWrap);
+      const totalWrap = document.createElement('div');
+      totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
+      row.appendChild(totalWrap);
 
-        skillsContainer.appendChild(row);
-      });
+      skillsContainer.appendChild(row);
+    });
 
-      function getAttrEl(name){ return document.getElementById(name); }
+    function getAttrEl(name){ return document.getElementById(name); }
 
-      function updateAttrModsForSkills(){
-        SKILLS.forEach(s=>{
-          const attrInput = document.querySelector(`#skill_${s.key} .attrmod`);
-          const global = getAttrEl(s.attr);
-          attrInput.value = global ? Number(global.value || 0) : 0;
-        });
-      }
+    // *** nova função: converte score para modifier usando a tabela enviada ***
+    function getModifierFromScore(score){
+      score = Number(score) || 0;
+      if(score <= 1) return -5;
+      if(score <= 3) return -4;
+      if(score <= 5) return -3;
+      if(score <= 7) return -2;
+      if(score <= 9) return -1;
+      if(score <= 11) return 0;
+      if(score <= 13) return 1;
+      if(score <= 15) return 2;
+      if(score <= 17) return 3;
+      if(score <= 19) return 4;
+      if(score <= 21) return 5;
+      if(score <= 23) return 6;
+      if(score <= 25) return 7;
+      // para valores acima, aplicar regra "a cada +2 no valor = +1 no modificador"
+      // calculamos offset a partir de 25:
+      return 7 + Math.floor((score - 25) / 2);
+    }
 
-      function halfLevel(){ return Math.floor(Number(nivelEl.value || 1) / 2); }
-
-      function recalcAll(){
-        updateAttrModsForSkills();
-        const half = halfLevel();
-        SKILLS.forEach(s=>{
-          const row = document.getElementById('skill_'+s.key);
-          const trainedChecked = row.querySelector('.trained').checked;
-          const extra = Number(row.querySelector('.extra').value || 0);
-          const attr = Number(row.querySelector('.attrmod').value || 0);
-          let total = 0;
-          if(trainedChecked){
-            const trainedBonus = 2;
-            total = half + attr + trainedBonus + extra;
-          } else {
-            total = extra;
-          }
-          row.querySelector('.total').value = total;
-        });
-      }
-
-      function maybeAutoCalcMods(){
-        if(!autoModsEl.checked) return;
-        const map = {
-          modFor: Number(document.getElementById('forca').value || 10),
-          modDes: Number(document.getElementById('destreza').value || 10),
-          modCon: Number(document.getElementById('const').value || 10),
-          modInt: Number(document.getElementById('int').value || 10),
-          modSab: Number(document.getElementById('sab').value || 10),
-          modCar: Number(document.getElementById('car').value || 10)
-        };
-        Object.keys(map).forEach(k=>{
-          const v = Math.floor((map[k] - 10)/2);
-          const el = document.getElementById(k);
-          if(el) el.value = v;
-        });
-      }
-
-      // listeners
-      nivelEl.addEventListener('input', recalcAll);
-      document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{
-        el.addEventListener('input', ()=>{
-          if(autoModsEl.checked && ['forca','destreza','const','int','sab','car'].includes(el.id)){
-            maybeAutoCalcMods();
-          }
-          recalcAll();
-        });
-      });
-      skillsContainer.addEventListener('input', recalcAll);
-      autoModsEl.addEventListener('change', ()=>{ if(autoModsEl.checked) maybeAutoCalcMods(); recalcAll(); });
-
-      maybeAutoCalcMods();
-      recalcAll();
-
-      // ---------- salvar/carregar JSON (inclui cards) ----------
-      function gatherData(){
-        const cardsData = window._cardsAPI.getAllData();
-        const data = {
-          meta: { nome: document.getElementById('nome').value || '' },
-          nivel: Number(document.getElementById('nivel').value || 1),
-          atributos: {
-            forca: Number(document.getElementById('forca').value || 10),
-            destreza: Number(document.getElementById('destreza').value || 10),
-            constit: Number(document.getElementById('const').value || 10),
-            intel: Number(document.getElementById('int').value || 10),
-            sab: Number(document.getElementById('sab').value || 10),
-            car: Number(document.getElementById('car').value || 10)
-          },
-          mods: {
-            modFor: Number(document.getElementById('modFor').value || 0),
-            modDes: Number(document.getElementById('modDes').value || 0),
-            modCon: Number(document.getElementById('modCon').value || 0),
-            modInt: Number(document.getElementById('modInt').value || 0),
-            modSab: Number(document.getElementById('modSab').value || 0),
-            modCar: Number(document.getElementById('modCar').value || 0)
-          },
-          skills: {},
-          cards: cardsData
-        };
-        SKILLS.forEach(s=>{
-          const row = document.getElementById('skill_'+s.key);
-          data.skills[s.key] = {
-            label: s.label,
-            attr: s.attr,
-            trained: row.querySelector('.trained').checked,
-            extra: Number(row.querySelector('.extra').value || 0),
-            attrmod: Number(row.querySelector('.attrmod').value || 0),
-            total: Number(row.querySelector('.total').value || 0)
-          };
-        });
-        return data;
-      }
-
-      document.getElementById('btnSave').addEventListener('click', ()=>{
-        const data = gatherData();
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = (document.getElementById('nome').value || 'ficha') + '.json';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-
-      document.getElementById('btnLoad').addEventListener('click', ()=> document.getElementById('fileLoader').click());
-      document.getElementById('fileLoader').addEventListener('change', async (e)=>{
-        const f = e.target.files[0];
-        if(!f) return;
-        try{
-          const txt = await f.text();
-          const data = JSON.parse(txt);
-          if(data.nivel) document.getElementById('nivel').value = data.nivel;
-          if(data.mods){
-            Object.keys(data.mods).forEach(k=>{
-              const el = document.getElementById(k);
-              if(el) el.value = data.mods[k];
-            });
-          }
-          if(data.atributos){
-            if(data.atributos.forca !== undefined) document.getElementById('forca').value = data.atributos.forca;
-            if(data.atributos.destreza !== undefined) document.getElementById('destreza').value = data.atributos.destreza;
-            if(data.atributos.constit !== undefined) document.getElementById('const').value = data.atributos.constit;
-            if(data.atributos.intel !== undefined) document.getElementById('int').value = data.atributos.intel;
-            if(data.atributos.sab !== undefined) document.getElementById('sab').value = data.atributos.sab;
-            if(data.atributos.car !== undefined) document.getElementById('car').value = data.atributos.car;
-          }
-          if(data.skills){
-            Object.keys(data.skills).forEach(sk=>{
-              const sdata = data.skills[sk];
-              const row = document.getElementById('skill_'+sk);
-              if(row){
-                row.querySelector('.trained').checked = !!sdata.trained;
-                row.querySelector('.extra').value = sdata.extra || 0;
-                if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
-              }
-            });
-          }
-          // carregar cards (itens/armas/magias) se existir
-          if(data.cards){
-            window._cardsAPI.loadAllData(data.cards);
-          }
-          maybeAutoCalcMods();
-          recalcAll();
-          alert('Ficha carregada.');
-        }catch(err){
-          alert('Erro ao carregar JSON: ' + err.message);
-        } finally {
-          e.target.value = '';
+    // atualiza campos de mod (modFor/modDes/...) a partir dos atributos caso autoMods ativo
+    function maybeAutoCalcMods(){
+      const auto = !!autoModsEl.checked;
+      const attrs = ['forca','destreza','const','int','sab','car'];
+      attrs.forEach(attrId=>{
+        const score = Number(document.getElementById(attrId).value || 0);
+        const modId = 'mod' + (attrId === 'const' ? 'Con' : attrId[0].toUpperCase() + (attrId.slice(1)));
+        // mod ids in this doc are: modFor, modDes, modCon, modInt, modSab, modCar
+        const modEl = document.getElementById(modId);
+        if(!modEl) return;
+        if(auto){
+          modEl.value = getModifierFromScore(score);
+          modEl.setAttribute('readonly','');
+        } else {
+          // when not auto, leave current value and make editable
+          modEl.removeAttribute('readonly');
         }
       });
+    }
 
-      document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
-      // recalcula periodicamente por segurança
-      setInterval(recalcAll, 1000);
-    })();
+    // preenche attrmod por perícia a partir dos campos mod*
+    function updateAttrModsForSkills(){
+      SKILLS.forEach(s=>{
+        const attrInput = document.querySelector(`#skill_${s.key} .attrmod`);
+        const global = getAttrEl(s.attr);
+        attrInput.value = global ? Number(global.value || 0) : 0;
+      });
+    }
+
+    function halfLevel(){ return Math.floor(Number(nivelEl.value || 1) / 2); }
+
+    function recalcAll(){
+      updateAttrModsForSkills();
+      const half = halfLevel();
+      SKILLS.forEach(s=>{
+        const row = document.getElementById('skill_'+s.key);
+        const trainedChecked = row.querySelector('.trained').checked;
+        const extra = Number(row.querySelector('.extra').value || 0);
+        const attr = Number(row.querySelector('.attrmod').value || 0);
+        let total = 0;
+        if(trainedChecked){
+          const trainedBonus = 2;
+          total = half + attr + trainedBonus + extra;
+        } else {
+          total = extra;
+        }
+        row.querySelector('.total').value = total;
+      });
+    }
+
+    // listeners: atributos + mods + level + pericias
+    nivelEl.addEventListener('input', ()=>{ recalcAll(); });
+
+    // attribute inputs: when they change, if autoMods checked update mods; always recalc
+    ['forca','destreza','const','int','sab','car'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener('input', ()=>{ maybeAutoCalcMods(); recalcAll(); });
+    });
+
+    // allow manual change on mod* when autoMods is off; react to mod changes too
+    document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{
+      el.addEventListener('input', ()=>{
+        // if user edits mods while autoMods ON we ignore (mods are readonly)
+        recalcAll();
+      });
+    });
+
+    // perks (trained/extra) changes
+    skillsContainer.addEventListener('input', recalcAll);
+
+    autoModsEl.addEventListener('change', ()=>{
+      maybeAutoCalcMods();
+      recalcAll();
+      // when turned off, user can edit mod*; when turned on, they become readonly
+      // (maybeAutoCalcMods already handles readonly toggling)
+    });
+
+    // init
+    maybeAutoCalcMods();
+    recalcAll();
+
+    // ---------- salvar/carregar JSON (inclui cards) ----------
+    function gatherData(){
+      const cardsData = window._cardsAPI.getAllData ? window._cardsAPI.getAllData() : {itens:[],armas:[],magias:[]};
+      const data = {
+        meta: { nome: document.getElementById('nome').value || '' , jogador: document.getElementById('jogador').value || '' },
+        nivel: Number(document.getElementById('nivel').value || 1),
+        atributos: {
+          forca: Number(document.getElementById('forca').value || 10),
+          destreza: Number(document.getElementById('destreza').value || 10),
+          constit: Number(document.getElementById('const').value || 10),
+          intel: Number(document.getElementById('int').value || 10),
+          sab: Number(document.getElementById('sab').value || 10),
+          car: Number(document.getElementById('car').value || 10)
+        },
+        mods: {
+          modFor: Number(document.getElementById('modFor').value || 0),
+          modDes: Number(document.getElementById('modDes').value || 0),
+          modCon: Number(document.getElementById('modCon').value || 0),
+          modInt: Number(document.getElementById('modInt').value || 0),
+          modSab: Number(document.getElementById('modSab').value || 0),
+          modCar: Number(document.getElementById('modCar').value || 0)
+        },
+        skills: {},
+        cards: cardsData,
+        autoMods: !!autoModsEl.checked
+      };
+      SKILLS.forEach(s=>{
+        const row = document.getElementById('skill_'+s.key);
+        data.skills[s.key] = {
+          label: s.label,
+          attr: s.attr,
+          trained: row.querySelector('.trained').checked,
+          extra: Number(row.querySelector('.extra').value || 0),
+          attrmod: Number(row.querySelector('.attrmod').value || 0),
+          total: Number(row.querySelector('.total').value || 0)
+        };
+      });
+      return data;
+    }
+
+    document.getElementById('btnSave').addEventListener('click', ()=>{
+      const data = gatherData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (document.getElementById('nome').value || 'ficha') + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btnLoad').addEventListener('click', ()=> document.getElementById('fileLoader').click());
+    document.getElementById('fileLoader').addEventListener('change', async (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      try{
+        const txt = await f.text();
+        const data = JSON.parse(txt);
+        if(data.nivel) document.getElementById('nivel').value = data.nivel;
+        if(data.atributos){
+          if(data.atributos.forca !== undefined) document.getElementById('forca').value = data.atributos.forca;
+          if(data.atributos.destreza !== undefined) document.getElementById('destreza').value = data.atributos.destreza;
+          if(data.atributos.constit !== undefined) document.getElementById('const').value = data.atributos.constit;
+          if(data.atributos.intel !== undefined) document.getElementById('int').value = data.atributos.intel;
+          if(data.atributos.sab !== undefined) document.getElementById('sab').value = data.atributos.sab;
+          if(data.atributos.car !== undefined) document.getElementById('car').value = data.atributos.car;
+        }
+        if(data.mods){
+          Object.keys(data.mods).forEach(k=>{
+            const el = document.getElementById(k);
+            if(el) el.value = data.mods[k];
+          });
+        }
+        if(data.skills){
+          Object.keys(data.skills).forEach(sk=>{
+            const sdata = data.skills[sk];
+            const row = document.getElementById('skill_'+sk);
+            if(row){
+              row.querySelector('.trained').checked = !!sdata.trained;
+              row.querySelector('.extra').value = sdata.extra || 0;
+              if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
+            }
+          });
+        }
+        // carregar cards (itens/armas/magias)
+        if(data.cards && window._cardsAPI && window._cardsAPI.loadAllData){
+          window._cardsAPI.loadAllData(data.cards);
+        }
+        // restore autoMods state
+        if(data.autoMods) document.getElementById('autoMods').checked = !!data.autoMods;
+        maybeAutoCalcMods();
+        recalcAll();
+        alert('Ficha carregada.');
+      }catch(err){
+        alert('Erro ao carregar JSON: ' + err.message);
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+
+    // recalcula periodicamente por segurança
+    setInterval(recalcAll, 1000);
+  })();
   </script>
 </body>
 </html>

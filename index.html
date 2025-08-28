@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (perícias)</title>
+  <title>Tormenta20 — Ficha (perícias + CRUD cards)</title>
   <style>
     :root{ --bg:#06060a; --fg:#eef0f2; --muted:#98a0a6; --card:#0f1114; --accent:#1f8feb; }
     *{box-sizing:border-box}
@@ -14,6 +14,7 @@
     header h1{font-size:18px;margin:0}
     .controls{display:flex;gap:6px;flex-wrap:wrap}
     button,.btn{background:transparent;border:1px solid var(--muted);padding:8px 10px;border-radius:8px;font-size:13px;color:var(--fg);cursor:pointer}
+    .btn.sm{padding:6px 8px;font-size:12px;border-radius:6px}
     .sheet{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
     .card{background:var(--card);border-radius:10px;padding:12px;border:1px solid #131416}
     label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -33,7 +34,11 @@
     .muted{color:var(--muted);font-size:13px}
     .tiny{font-size:12px;color:var(--muted)}
     .top-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .list{display:flex;flex-direction:column;gap:6px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .card.small{padding:8px}
+    .card .card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+    .card .display-row{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}
+    .card .display-row .label{color:var(--muted);font-size:12px;width:80px}
     @media (max-width:720px){
       .skill-row{grid-template-columns:1fr 60px 60px 72px 72px}
       .small{flex:0 0 72px}
@@ -43,7 +48,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>Tormenta20 — Ficha (perícias)</h1>
+      <h1>Tormenta20 — Ficha (perícias + CRUD cards)</h1>
       <div class="controls">
         <button id="btnSave" class="btn">Salvar JSON</button>
         <button id="btnLoad" class="btn">Carregar JSON</button>
@@ -119,7 +124,6 @@
       <section class="card">
         <div class="section-title">Perícias</div>
         <div class="tiny muted" style="margin-bottom:8px">Fórmula (aplicada apenas se Treinada): <strong>½ Nível + Mod. do Atributo</strong>. Treinada também adiciona +2. Se não treinada, será apenas o campo "Outros" (mais o +2 se marcar Treinada).</div>
-
         <div class="skills-container" id="skillsContainer"></div>
       </section>
 
@@ -127,77 +131,262 @@
       <section class="card">
         <div class="section-title">Itens</div>
         <div id="itens" class="list"></div>
-        <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
+        </div>
       </section>
 
       <!-- ARMAS -->
       <section class="card">
         <div class="section-title">Armas</div>
         <div id="armas" class="list"></div>
-        <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
+        </div>
       </section>
 
       <!-- MAGIAS -->
       <section class="card">
         <div class="section-title">Magias</div>
         <div id="magiasList" class="list"></div>
-        <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
+        </div>
       </section>
     </form>
 
-    <footer class="tiny muted">Atualizado: metade do nível e mod de atributo SOMENTE para perícias treinadas.</footer>
+    <footer class="tiny muted">Atualizado: metade do nível e mod de atributo SOMENTE para perícias treinadas. Cards editáveis e removíveis.</footer>
   </div>
 
-  <!-- pequeno script para adicionar itens/armas/magias -->
   <script>
-    function createCard(type, idx){
-      const div = document.createElement('div');
-      div.className = 'card';
-      if(type === 'item'){
-        div.innerHTML = `
-          <input type="text" name="item${idx}" placeholder="Item">
-          <input type="number" name="peso${idx}" placeholder="Peso">`;
-      } else if(type === 'arma'){
-        div.innerHTML = `
-          <input type="text" name="armaNome${idx}" placeholder="Nome da Arma">
-          <input type="text" name="armaDano${idx}" placeholder="Dano">
-          <input type="number" name="armaBonus${idx}" placeholder="Bônus">`;
-      } else if(type === 'magia'){
-        div.innerHTML = `
-          <input type="text" name="magiaNome${idx}" placeholder="Nome da Magia">
-          <textarea name="magiaDesc${idx}" placeholder="Efeitos"></textarea>`;
+    /* ---------- criação e CRUD dos cards (Itens / Armas / Magias) ---------- */
+    (function(){
+      let itemCount = 0, armaCount = 0, magiaCount = 0;
+
+      function createCard(type, idx, data = {}) {
+        const div = document.createElement('div');
+        div.className = 'card small';
+        div.dataset.type = type;
+        div.dataset.idx = idx;
+
+        // display area (view mode)
+        const display = document.createElement('div');
+        display.className = 'display';
+        display.style.display = data.viewOnly ? 'flex' : 'none';
+        display.innerHTML = ''; // will fill below
+
+        // edit area (inputs)
+        const edit = document.createElement('div');
+        edit.className = 'edit';
+        edit.style.display = data.viewOnly ? 'none' : 'block';
+        edit.innerHTML = ''; // will fill below
+
+        // actions
+        const actions = document.createElement('div');
+        actions.className = 'card-actions';
+
+        const btnEdit = document.createElement('button');
+        btnEdit.type = 'button';
+        btnEdit.className = 'btn sm edit-btn';
+        btnEdit.textContent = data.viewOnly ? 'Editar' : 'Salvar';
+
+        const btnRemove = document.createElement('button');
+        btnRemove.type = 'button';
+        btnRemove.className = 'btn sm remove-btn';
+        btnRemove.textContent = 'Remover';
+
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnRemove);
+
+        // build content depending on type
+        if(type === 'item'){
+          const nome = data.nome || '';
+          const peso = data.peso !== undefined ? data.peso : '';
+
+          display.innerHTML = `
+            <div class="display-row">
+              <div class="label">Item</div>
+              <div><strong class="display-name">${escapeHtml(nome)}</strong></div>
+              <div class="label">Peso</div>
+              <div><span class="display-peso">${escapeHtml(String(peso))}</span></div>
+            </div>`;
+
+          edit.innerHTML = `
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" class="field-nome" placeholder="Item" value="${escapeAttr(nome)}">
+              <input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}">
+            </div>`;
+        } else if(type === 'arma'){
+          const nome = data.nome || '';
+          const dano = data.dano || '';
+          const bonus = data.bonus !== undefined ? data.bonus : '';
+
+          display.innerHTML = `
+            <div class="display-row">
+              <div class="label">Nome</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
+              <div class="label">Dano</div><div><span class="display-dano">${escapeHtml(dano)}</span></div>
+              <div class="label">Bônus</div><div><span class="display-bonus">${escapeHtml(String(bonus))}</span></div>
+            </div>`;
+
+          edit.innerHTML = `
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" class="field-nome" placeholder="Nome da Arma" value="${escapeAttr(nome)}">
+              <input type="text" class="field-dano" placeholder="Dano" value="${escapeAttr(dano)}">
+              <input type="number" class="field-bonus" placeholder="Bônus" value="${escapeAttr(bonus)}">
+            </div>`;
+        } else if(type === 'magia'){
+          const nome = data.nome || '';
+          const desc = data.desc || '';
+
+          display.innerHTML = `
+            <div class="display-row">
+              <div class="label">Magia</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div>
+              <div style="width:100%;margin-top:6px"><div class="label">Efeito</div><div class="display-desc">${escapeHtml(desc)}</div></div>
+            </div>`;
+
+          edit.innerHTML = `
+            <div style="display:flex;gap:8px;flex-direction:column">
+              <input type="text" class="field-nome" placeholder="Nome da Magia" value="${escapeAttr(nome)}">
+              <textarea class="field-desc" placeholder="Efeitos">${escapeAttr(desc)}</textarea>
+            </div>`;
+        }
+
+        div.appendChild(display);
+        div.appendChild(edit);
+        div.appendChild(actions);
+
+        // behavior: edit/save toggle
+        btnEdit.addEventListener('click', ()=>{
+          const isEditing = edit.style.display !== 'none';
+          if(isEditing){
+            // salvar: pegar valores e mostrar display
+            if(type === 'item'){
+              const nomeVal = div.querySelector('.field-nome').value || '';
+              const pesoVal = div.querySelector('.field-peso').value || '';
+              div.querySelector('.display-name').textContent = nomeVal;
+              div.querySelector('.display-peso').textContent = pesoVal;
+            } else if(type === 'arma'){
+              const nomeVal = div.querySelector('.field-nome').value || '';
+              const danoVal = div.querySelector('.field-dano').value || '';
+              const bonusVal = div.querySelector('.field-bonus').value || '';
+              div.querySelector('.display-nome').textContent = nomeVal;
+              div.querySelector('.display-dano').textContent = danoVal;
+              div.querySelector('.display-bonus').textContent = bonusVal;
+            } else if(type === 'magia'){
+              const nomeVal = div.querySelector('.field-nome').value || '';
+              const descVal = div.querySelector('.field-desc').value || '';
+              div.querySelector('.display-nome').textContent = nomeVal;
+              div.querySelector('.display-desc').textContent = descVal;
+            }
+            // toggle to view
+            edit.style.display = 'none';
+            display.style.display = 'flex';
+            btnEdit.textContent = 'Editar';
+          } else {
+            // switch to edit mode
+            edit.style.display = 'block';
+            display.style.display = 'none';
+            btnEdit.textContent = 'Salvar';
+          }
+        });
+
+        // remove
+        btnRemove.addEventListener('click', ()=>{
+          if(confirm('Remover este ' + type + '?')) div.remove();
+        });
+
+        return div;
       }
-      return div;
-    }
 
-    let itemCount = 0, armaCount = 0, magiaCount = 0;
-    document.addEventListener('DOMContentLoaded', ()=>{
-      const addItemBtn = document.getElementById('addItem');
-      const addArmaBtn = document.getElementById('addArma');
-      const addMagiaBtn = document.getElementById('addMagia');
+      // helpers to escape values into attributes/HTML safely
+      function escapeAttr(v){ if(v === undefined || v === null) return ''; return String(v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function escapeHtml(v){ if(v === undefined || v === null) return ''; return String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-      if(addItemBtn){
-        addItemBtn.addEventListener('click', ()=> {
+      // inicializadores dos botões de adicionar
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const itensEl = document.getElementById('itens');
+        const armasEl = document.getElementById('armas');
+        const magiasEl = document.getElementById('magiasList');
+
+        document.getElementById('addItem').addEventListener('click', ()=>{
           itemCount++;
-          document.getElementById('itens').appendChild(createCard('item', itemCount));
+          const card = createCard('item', itemCount, { nome:'', peso:'' });
+          itensEl.appendChild(card);
         });
-      }
-      if(addArmaBtn){
-        addArmaBtn.addEventListener('click', ()=> {
+
+        document.getElementById('addArma').addEventListener('click', ()=>{
           armaCount++;
-          document.getElementById('armas').appendChild(createCard('arma', armaCount));
+          const card = createCard('arma', armaCount, { nome:'', dano:'', bonus:'' });
+          armasEl.appendChild(card);
         });
-      }
-      if(addMagiaBtn){
-        addMagiaBtn.addEventListener('click', ()=> {
+
+        document.getElementById('addMagia').addEventListener('click', ()=>{
           magiaCount++;
-          document.getElementById('magiasList').appendChild(createCard('magia', magiaCount));
+          const card = createCard('magia', magiaCount, { nome:'', desc:'' });
+          magiasEl.appendChild(card);
         });
-      }
-    });
+      });
+
+      // expose some functions to the global scope so main script can serialize
+      window._cardsAPI = {
+        createCard, // createCard(type, idx, data)
+        getAllData: function(){
+          // return arrays of current cards
+          const itens = Array.from(document.querySelectorAll('#itens .card')).map(c=>{
+            if(c.dataset.type !== 'item') return null;
+            // prefer current displayed value if in view mode, else input values
+            const name = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value || '');
+            const peso = c.querySelector('.display-peso') ? c.querySelector('.display-peso').textContent : (c.querySelector('.field-peso')?.value || '');
+            return { nome: name, peso: peso };
+          }).filter(Boolean);
+          const armas = Array.from(document.querySelectorAll('#armas .card')).map(c=>{
+            if(c.dataset.type !== 'arma') return null;
+            const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
+            const dano = c.querySelector('.display-dano') ? c.querySelector('.display-dano').textContent : (c.querySelector('.field-dano')?.value || '');
+            const bonus = c.querySelector('.display-bonus') ? c.querySelector('.display-bonus').textContent : (c.querySelector('.field-bonus')?.value || '');
+            return { nome, dano, bonus };
+          }).filter(Boolean);
+          const magias = Array.from(document.querySelectorAll('#magiasList .card')).map(c=>{
+            if(c.dataset.type !== 'magia') return null;
+            const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value || '');
+            const desc = c.querySelector('.display-desc') ? c.querySelector('.display-desc').textContent : (c.querySelector('.field-desc')?.value || '');
+            return { nome, desc };
+          }).filter(Boolean);
+          return { itens, armas, magias };
+        },
+        loadAllData: function(obj){
+          const itensEl = document.getElementById('itens');
+          const armasEl = document.getElementById('armas');
+          const magiasEl = document.getElementById('magiasList');
+          itensEl.innerHTML = ''; armasEl.innerHTML = ''; magiasEl.innerHTML = '';
+          itemCount = 0; armaCount = 0; magiaCount = 0;
+          if(obj.itens && Array.isArray(obj.itens)){
+            obj.itens.forEach(it=>{
+              itemCount++;
+              const card = createCard('item', itemCount, { nome: it.nome || '', peso: it.peso || '', viewOnly: true });
+              itensEl.appendChild(card);
+            });
+          }
+          if(obj.armas && Array.isArray(obj.armas)){
+            obj.armas.forEach(a=>{
+              armaCount++;
+              const card = createCard('arma', armaCount, { nome: a.nome || '', dano: a.dano || '', bonus: a.bonus || '', viewOnly: true });
+              armasEl.appendChild(card);
+            });
+          }
+          if(obj.magias && Array.isArray(obj.magias)){
+            obj.magias.forEach(m=>{
+              magiaCount++;
+              const card = createCard('magia', magiaCount, { nome: m.nome || '', desc: m.desc || '', viewOnly: true });
+              magiasEl.appendChild(card);
+            });
+          }
+        }
+      };
+    })();
   </script>
 
-  <!-- script principal (perícias, salvar/carregar/imprimir) -->
+  <!-- ---------- script principal (perícias, salvar/carregar/imprimir) ---------- -->
   <script>
     (function(){
       const SKILLS = [
@@ -285,7 +474,6 @@
           const trainedChecked = row.querySelector('.trained').checked;
           const extra = Number(row.querySelector('.extra').value || 0);
           const attr = Number(row.querySelector('.attrmod').value || 0);
-          // metade do nível e mod entram somente se treinado
           let total = 0;
           if(trainedChecked){
             const trainedBonus = 2;
@@ -330,8 +518,9 @@
       maybeAutoCalcMods();
       recalcAll();
 
-      // ---------- salvar/carregar JSON ----------
+      // ---------- salvar/carregar JSON (inclui cards) ----------
       function gatherData(){
+        const cardsData = window._cardsAPI.getAllData();
         const data = {
           meta: { nome: document.getElementById('nome').value || '' },
           nivel: Number(document.getElementById('nivel').value || 1),
@@ -351,7 +540,8 @@
             modSab: Number(document.getElementById('modSab').value || 0),
             modCar: Number(document.getElementById('modCar').value || 0)
           },
-          skills: {}
+          skills: {},
+          cards: cardsData
         };
         SKILLS.forEach(s=>{
           const row = document.getElementById('skill_'+s.key);
@@ -413,6 +603,10 @@
               }
             });
           }
+          // carregar cards (itens/armas/magias) se existir
+          if(data.cards){
+            window._cardsAPI.loadAllData(data.cards);
+          }
           maybeAutoCalcMods();
           recalcAll();
           alert('Ficha carregada.');
@@ -424,7 +618,7 @@
       });
 
       document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
-      // segurança: recalcula periodicamente
+      // recalcula periodicamente por segurança
       setInterval(recalcAll, 1000);
     })();
   </script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (perícias: metade do nível e mod só se treinado)</title>
+  <title>Tormenta20 — Ficha (perícias)</title>
   <style>
     :root{ --bg:#06060a; --fg:#eef0f2; --muted:#98a0a6; --card:#0f1114; --accent:#1f8feb; }
     *{box-sizing:border-box}
@@ -33,6 +33,7 @@
     .muted{color:var(--muted);font-size:13px}
     .tiny{font-size:12px;color:var(--muted)}
     .top-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .list{display:flex;flex-direction:column;gap:6px}
     @media (max-width:720px){
       .skill-row{grid-template-columns:1fr 60px 60px 72px 72px}
       .small{flex:0 0 72px}
@@ -121,11 +122,82 @@
 
         <div class="skills-container" id="skillsContainer"></div>
       </section>
+
+      <!-- ITENS -->
+      <section class="card">
+        <div class="section-title">Itens</div>
+        <div id="itens" class="list"></div>
+        <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
+      </section>
+
+      <!-- ARMAS -->
+      <section class="card">
+        <div class="section-title">Armas</div>
+        <div id="armas" class="list"></div>
+        <button type="button" id="addArma" class="btn">+ Adicionar Arma</button>
+      </section>
+
+      <!-- MAGIAS -->
+      <section class="card">
+        <div class="section-title">Magias</div>
+        <div id="magiasList" class="list"></div>
+        <button type="button" id="addMagia" class="btn">+ Adicionar Magia</button>
+      </section>
     </form>
 
     <footer class="tiny muted">Atualizado: metade do nível e mod de atributo SOMENTE para perícias treinadas.</footer>
   </div>
 
+  <!-- pequeno script para adicionar itens/armas/magias -->
+  <script>
+    function createCard(type, idx){
+      const div = document.createElement('div');
+      div.className = 'card';
+      if(type === 'item'){
+        div.innerHTML = `
+          <input type="text" name="item${idx}" placeholder="Item">
+          <input type="number" name="peso${idx}" placeholder="Peso">`;
+      } else if(type === 'arma'){
+        div.innerHTML = `
+          <input type="text" name="armaNome${idx}" placeholder="Nome da Arma">
+          <input type="text" name="armaDano${idx}" placeholder="Dano">
+          <input type="number" name="armaBonus${idx}" placeholder="Bônus">`;
+      } else if(type === 'magia'){
+        div.innerHTML = `
+          <input type="text" name="magiaNome${idx}" placeholder="Nome da Magia">
+          <textarea name="magiaDesc${idx}" placeholder="Efeitos"></textarea>`;
+      }
+      return div;
+    }
+
+    let itemCount = 0, armaCount = 0, magiaCount = 0;
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const addItemBtn = document.getElementById('addItem');
+      const addArmaBtn = document.getElementById('addArma');
+      const addMagiaBtn = document.getElementById('addMagia');
+
+      if(addItemBtn){
+        addItemBtn.addEventListener('click', ()=> {
+          itemCount++;
+          document.getElementById('itens').appendChild(createCard('item', itemCount));
+        });
+      }
+      if(addArmaBtn){
+        addArmaBtn.addEventListener('click', ()=> {
+          armaCount++;
+          document.getElementById('armas').appendChild(createCard('arma', armaCount));
+        });
+      }
+      if(addMagiaBtn){
+        addMagiaBtn.addEventListener('click', ()=> {
+          magiaCount++;
+          document.getElementById('magiasList').appendChild(createCard('magia', magiaCount));
+        });
+      }
+    });
+  </script>
+
+  <!-- script principal (perícias, salvar/carregar/imprimir) -->
   <script>
     (function(){
       const SKILLS = [
@@ -163,6 +235,7 @@
       const nivelEl = document.getElementById('nivel');
       const autoModsEl = document.getElementById('autoMods');
 
+      // renderiza as linhas de perícia
       SKILLS.forEach(s=>{
         const row = document.createElement('div');
         row.className = 'skill-row';
@@ -212,13 +285,12 @@
           const trainedChecked = row.querySelector('.trained').checked;
           const extra = Number(row.querySelector('.extra').value || 0);
           const attr = Number(row.querySelector('.attrmod').value || 0);
-          // NOVA LÓGICA: metade do nível e mod de atributo só entram se TRAINED
+          // metade do nível e mod entram somente se treinado
           let total = 0;
           if(trainedChecked){
             const trainedBonus = 2;
             total = half + attr + trainedBonus + extra;
           } else {
-            // não treinado: não soma metade do nível nem mod de atributo — apenas "outros"
             total = extra;
           }
           row.querySelector('.total').value = total;
@@ -242,6 +314,7 @@
         });
       }
 
+      // listeners
       nivelEl.addEventListener('input', recalcAll);
       document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{
         el.addEventListener('input', ()=>{
@@ -257,7 +330,7 @@
       maybeAutoCalcMods();
       recalcAll();
 
-      // salvar/carregar (mesma lógica anterior)
+      // ---------- salvar/carregar JSON ----------
       function gatherData(){
         const data = {
           meta: { nome: document.getElementById('nome').value || '' },

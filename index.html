@@ -156,6 +156,22 @@
         </table>
       </section>
 
+      <!-- PERÍCIAS -->
+      <section class="card">
+        <div class="section-title">Perícias</div>
+        <div class="tiny muted" style="margin-bottom:8px">
+          1/2 do nível + mod. de atributo (padrão ou alternado) + treino (+2) + outros
+        </div>
+      
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+          <label class="muted"><input type="checkbox" id="useGlobalAttrForSkills" checked> Usar modificadores de atributo padrão (campo "modX" acima). Se desmarcar, escolha atributo por perícia.</label>
+        </div>
+      
+        <div id="skillsContainer" class="skills-container" aria-label="Lista de perícias">
+          <!-- será populado por JavaScript -->
+        </div>
+      </section>
+
       <!-- DEFESA / ARMADURA & ESCUDO -->
       <section class="card">
         <div class="section-title">Defesa / Armadura & Escudo</div>
@@ -399,365 +415,634 @@
   </script>
 
   <!-- script principal (perícias + mods automáticos corrigido + carga) -->
-  <script>
-  (function(){
-    const SKILLS = [
-      { key:'acro', label:'Acrobacia', attr:'modDes' },
-      { key:'ades', label:'Adestramento', attr:'modCar' },
-      { key:'atle', label:'Atletismo', attr:'modFor' },
-      { key:'atua', label:'Atuação', attr:'modCar' },
-      { key:'caval', label:'Cavalgar', attr:'modDes' },
-      { key:'conhec', label:'Conhecimento', attr:'modInt' },
-      { key:'cura', label:'Cura', attr:'modSab' },
-      { key:'dipl', label:'Diplomacia', attr:'modCar' },
-      { key:'enga', label:'Enganação', attr:'modCar' },
-      { key:'fort', label:'Fortitude', attr:'modCon' },
-      { key:'furt', label:'Furtividade', attr:'modDes' },
-      { key:'inic', label:'Iniciativa', attr:'modDes' },
-      { key:'intu', label:'Intuição', attr:'modSab' },
-      { key:'inve', label:'Investigação', attr:'modInt' },
-      { key:'joga', label:'Jogatina', attr:'modCar' },
-      { key:'ladi', label:'Ladinagem', attr:'modDes' },
-      { key:'luta', label:'Luta', attr:'modFor' },
-      { key:'mist', label:'Misticismo', attr:'modInt' },
-      { key:'nobr', label:'Nobreza', attr:'modInt' },
-      { key:'ofi1', label:'Ofício 1', attr:'modInt' },
-      { key:'ofi2', label:'Ofício 2', attr:'modInt' },
-      { key:'perc', label:'Percepção', attr:'modSab' },
-      { key:'pilo', label:'Pilotagem', attr:'modDes' },
-      { key:'pont', label:'Pontaria', attr:'modDes' },
-      { key:'refl', label:'Reflexos', attr:'modDes' },
-      { key:'reli', label:'Religião', attr:'modSab' },
-      { key:'sobr', label:'Sobrevivência', attr:'modSab' },
-      { key:'vont', label:'Vontade', attr:'modSab' }
-    ];
+ <script>
+(function(){
+  // ---------- CONFIG / SKILLS ----------
+  const SKILLS = [
+    { key:'acro', label:'Acrobacia', attr:'modDes' },
+    { key:'ades', label:'Adestramento', attr:'modCar' },
+    { key:'atle', label:'Atletismo', attr:'modFor' },
+    { key:'atua', label:'Atuação', attr:'modCar' },
+    { key:'caval', label:'Cavalgar', attr:'modDes' },
+    { key:'conhec', label:'Conhecimento', attr:'modInt' },
+    { key:'cura', label:'Cura', attr:'modSab' },
+    { key:'dipl', label:'Diplomacia', attr:'modCar' },
+    { key:'enga', label:'Enganação', attr:'modCar' },
+    { key:'fort', label:'Fortitude', attr:'modCon' },
+    { key:'furt', label:'Furtividade', attr:'modDes' },
+    { key:'inic', label:'Iniciativa', attr:'modDes' },
+    { key:'intu', label:'Intuição', attr:'modSab' },
+    { key:'inve', label:'Investigação', attr:'modInt' },
+    { key:'joga', label:'Jogatina', attr:'modCar' },
+    { key:'ladi', label:'Ladinagem', attr:'modDes' },
+    { key:'luta', label:'Luta', attr:'modFor' },
+    { key:'mist', label:'Misticismo', attr:'modInt' },
+    { key:'nobr', label:'Nobreza', attr:'modInt' },
+    { key:'ofi1', label:'Ofício 1', attr:'modInt' },
+    { key:'ofi2', label:'Ofício 2', attr:'modInt' },
+    { key:'perc', label:'Percepção', attr:'modSab' },
+    { key:'pilo', label:'Pilotagem', attr:'modDes' },
+    { key:'pont', label:'Pontaria', attr:'modDes' },
+    { key:'refl', label:'Reflexos', attr:'modDes' },
+    { key:'reli', label:'Religião', attr:'modSab' },
+    { key:'sobr', label:'Sobrevivência', attr:'modSab' },
+    { key:'vont', label:'Vontade', attr:'modSab' }
+  ];
 
-    const skillsContainer = document.getElementById('skillsContainer') || document.createElement('div');
-    const nivelEl = document.getElementById('nivel');
-    const autoModsEl = document.getElementById('autoMods');
+  // ---------- UTIL / VARS ----------
+  let itemCount = 0, armaCount = 0, magiaCount = 0, equipCount = 0;
+  const ATTR_TO_MOD = {
+    forca: 'modFor',
+    destreza: 'modDes',
+    const: 'modCon',
+    int: 'modInt',
+    sab: 'modSab',
+    car: 'modCar'
+  };
 
-    // renderiza perícias se container existe (se sua versão antiga já tem)
-    if(document.getElementById('skillsContainer')){
-      SKILLS.forEach(s=>{
-        const row = document.createElement('div');
-        row.className = 'skill-row';
-        row.id = 'skill_'+s.key;
+  // shortcut elements
+  const nivelEl = document.getElementById('nivel');
+  const autoModsEl = document.getElementById('autoMods');
 
-        const nameDiv = document.createElement('div');
-        nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
-        row.appendChild(nameDiv);
+  // ---------- CARDS (itens/armas/magias/equips) ----------
+  function createCard(type, idx, data = {}) {
+    const div = document.createElement('div');
+    div.className = 'card small';
+    div.dataset.type = type;
+    div.dataset.idx = idx;
+    const display = document.createElement('div'); const edit = document.createElement('div'); const actions = document.createElement('div');
+    display.className='display'; edit.className='edit'; actions.className='card-actions';
+    display.style.display = data.viewOnly ? 'flex' : 'none';
+    edit.style.display = data.viewOnly ? 'none' : 'block';
+    const btnEdit = document.createElement('button'); btnEdit.type='button'; btnEdit.className='btn sm edit-btn'; btnEdit.textContent = data.viewOnly ? 'Editar' : 'Salvar';
+    const btnRemove = document.createElement('button'); btnRemove.type='button'; btnRemove.className='btn sm remove-btn'; btnRemove.textContent='Remover';
+    actions.appendChild(btnEdit); actions.appendChild(btnRemove);
+    function escapeAttr(v){ if(v===undefined||v===null) return ''; return String(v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function escapeHtml(v){ if(v===undefined||v===null) return ''; return String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        const trainedWrap = document.createElement('div');
-        trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
-        trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
-        row.appendChild(trainedWrap);
+    if(type==='item'){ const nome=data.nome||''; const peso=data.peso||''; display.innerHTML = `<div class="display-row"><div class="label">Item</div><div><strong class="display-name">${escapeHtml(nome)}</strong></div><div class="label">Peso</div><div><span class="display-peso">${escapeHtml(String(peso))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Item" value="${escapeAttr(nome)}"><input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}"></div>`; }
+    if(type==='arma'){ const nome=data.nome||''; const dano=data.dano||''; const bonus=data.bonus||''; display.innerHTML = `<div class="display-row"><div class="label">Nome</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div><div class="label">Dano</div><div><span class="display-dano">${escapeHtml(dano)}</span></div><div class="label">Bônus</div><div><span class="display-bonus">${escapeHtml(String(bonus))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Nome da Arma" value="${escapeAttr(nome)}"><input type="text" class="field-dano" placeholder="Dano" value="${escapeAttr(dano)}"><input type="number" class="field-bonus" placeholder="Bônus" value="${escapeAttr(bonus)}"></div>`; }
+    if(type==='magia'){ const nome=data.nome||''; const desc=data.desc||''; display.innerHTML = `<div class="display-row"><div class="label">Magia</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div><div style="width:100%;margin-top:6px"><div class="label">Efeito</div><div class="display-desc">${escapeHtml(desc)}</div></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-direction:column"><input type="text" class="field-nome" placeholder="Nome da Magia" value="${escapeAttr(nome)}"><textarea class="field-desc" placeholder="Efeitos">${escapeAttr(desc)}</textarea></div>`; }
+    if(type==='equip'){ const nome=data.nome||''; const peso=data.peso||''; display.innerHTML = `<div class="display-row"><div class="label">Equip</div><div><strong class="display-name">${escapeHtml(nome)}</strong></div><div class="label">Peso</div><div><span class="display-peso">${escapeHtml(String(peso))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Equipamento" value="${escapeAttr(nome)}"><input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}"></div>`; }
 
-        const extraWrap = document.createElement('div');
-        extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
-        row.appendChild(extraWrap);
+    div.appendChild(display); div.appendChild(edit); div.appendChild(actions);
+    btnEdit.addEventListener('click', ()=>{ const isEditing = edit.style.display !== 'none'; if(isEditing){ if(type==='item' || type==='equip'){ const nomeVal = div.querySelector('.field-nome').value||''; const pesoVal = div.querySelector('.field-peso').value||''; div.querySelector('.display-name').textContent = nomeVal; div.querySelector('.display-peso').textContent = pesoVal; } if(type==='arma'){ const nomeVal = div.querySelector('.field-nome').value||''; const danoVal = div.querySelector('.field-dano').value||''; const bonusVal = div.querySelector('.field-bonus').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-dano').textContent = danoVal; div.querySelector('.display-bonus').textContent = bonusVal; } if(type==='magia'){ const nomeVal = div.querySelector('.field-nome').value||''; const descVal = div.querySelector('.field-desc').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-desc').textContent = descVal; } edit.style.display='none'; display.style.display='flex'; btnEdit.textContent='Editar'; updateCargaValues(); } else { edit.style.display='block'; display.style.display='none'; btnEdit.textContent='Salvar'; } });
+    btnRemove.addEventListener('click', ()=>{ if(confirm('Remover este '+type+'?')) { div.remove(); updateCargaValues(); } });
+    return div;
+  }
 
-        const attrWrap = document.createElement('div');
-        attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
-        row.appendChild(attrWrap);
+  // ---------- INIT DOMContentLoaded: cria botões/cards/ataques ----------
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList'), equipEl=document.getElementById('equipList');
 
-        const totalWrap = document.createElement('div');
-        totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
-        row.appendChild(totalWrap);
+    document.getElementById('addItem').addEventListener('click', ()=>{ itemCount++; itensEl.appendChild(createCard('item', itemCount, {nome:'', peso:''})); });
+    document.getElementById('addArma').addEventListener('click', ()=>{ armaCount++; armasEl.appendChild(createCard('arma', armaCount, {nome:'', dano:'', bonus:''})); });
+    document.getElementById('addMagia').addEventListener('click', ()=>{ magiaCount++; magiasEl.appendChild(createCard('magia', magiaCount, {nome:'', desc:''})); });
 
-        skillsContainer.appendChild(row);
-      });
+    document.getElementById('addEquip').addEventListener('click', ()=>{ equipCount++; equipEl.appendChild(createCard('equip', equipCount, {nome:'', peso:0})); updateCargaValues(); });
+    document.getElementById('clearEquip').addEventListener('click', ()=>{ if(confirm('Remover todos os equipamentos?')){ equipEl.innerHTML=''; equipCount=0; updateCargaValues(); } });
+
+    // cria 5 linhas de ataque iniciais
+    const attacksTbody = document.getElementById('attacksTbody');
+    for(let i=1;i<=5;i++){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input type="text" class="atk-nome" data-i="${i}"></td>
+                      <td><input type="number" class="atk-bonus" data-i="${i}" value="0"></td>
+                      <td><input type="text" class="atk-dano" data-i="${i}"></td>
+                      <td><input type="text" class="atk-crit" data-i="${i}"></td>
+                      <td><input type="text" class="atk-tipo" data-i="${i}"></td>
+                      <td><input type="text" class="atk-alc" data-i="${i}"></td>`;
+      attacksTbody.appendChild(tr);
     }
 
-    function getAttrEl(name){ return document.getElementById(name); }
+    // listeners iniciais
+    const equipListEl = document.getElementById('equipList');
+    equipListEl.addEventListener('input', updateCargaValues);
+    const forEl = document.getElementById('forca');
+    if(forEl) forEl.addEventListener('input', updateCargaValues);
 
-    function getModifierFromScore(score){
-      score = Number(score) || 0;
-      if(score <= 1) return -5;
-      if(score <= 3) return -4;
-      if(score <= 5) return -3;
-      if(score <= 7) return -2;
-      if(score <= 9) return -1;
-      if(score <= 11) return 0;
-      if(score <= 13) return 1;
-      if(score <= 15) return 2;
-      if(score <= 17) return 3;
-      if(score <= 19) return 4;
-      if(score <= 21) return 5;
-      if(score <= 23) return 6;
-      if(score <= 25) return 7;
-      return 7 + Math.floor((score - 25) / 2);
-    }
+    // inicializa perícias (se o container existir, renderiza linhas)
+    initSkillsArea();
 
-    const ATTR_TO_MOD = {
-      forca: 'modFor',
-      destreza: 'modDes',
-      const: 'modCon',
-      int: 'modInt',
-      sab: 'modSab',
-      car: 'modCar'
-    };
-
-    function maybeAutoCalcMods(){
-      const auto = !!autoModsEl.checked;
-      Object.keys(ATTR_TO_MOD).forEach(attrId=>{
-        const score = Number(document.getElementById(attrId).value || 0);
-        const modId = ATTR_TO_MOD[attrId];
-        const modEl = document.getElementById(modId);
-        if(!modEl) return;
-        if(auto){
-          modEl.value = getModifierFromScore(score);
-          modEl.setAttribute('readonly','');
-        } else {
-          modEl.removeAttribute('readonly');
-        }
-      });
-    }
-
-    function updateAttrModsForSkills(){
-      SKILLS.forEach(s=>{
-        const attrInput = document.querySelector(`#skill_${s.key} .attrmod`);
-        const global = getAttrEl(s.attr);
-        if(attrInput) attrInput.value = global ? Number(global.value || 0) : 0;
-      });
-    }
-
-    function halfLevel(){ return Math.floor(Number(nivelEl.value || 1) / 2); }
-
-    function recalcAll(){
-      updateAttrModsForSkills();
-      const half = halfLevel();
-      SKILLS.forEach(s=>{
-        const row = document.getElementById('skill_'+s.key);
-        if(!row) return;
-        const trainedChecked = row.querySelector('.trained').checked;
-        const extra = Number(row.querySelector('.extra').value || 0);
-        const attr = Number(row.querySelector('.attrmod').value || 0);
-        let total = 0;
-        if(trainedChecked){
-          const trainedBonus = 2;
-          total = half + attr + trainedBonus + extra;
-        } else {
-          total = extra;
-        }
-        row.querySelector('.total').value = total;
-      });
-      updateCargaValues();
-    }
-
-    // listeners
-    if(nivelEl) nivelEl.addEventListener('input', recalcAll);
-
-    ['forca','destreza','const','int','sab','car'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.addEventListener('input', ()=>{ maybeAutoCalcMods(); recalcAll(); });
-    });
-
-    document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{ el.addEventListener('input', ()=>{ recalcAll(); }); });
-    if(document.getElementById('skillsContainer')) document.getElementById('skillsContainer').addEventListener('input', recalcAll);
-    if(autoModsEl) autoModsEl.addEventListener('change', ()=>{ maybeAutoCalcMods(); recalcAll(); });
-
+    // inicializa valores dependentes
     maybeAutoCalcMods();
     recalcAll();
+    updateCargaValues();
+  });
 
-    // ---------- salvar/carregar JSON (inclui cards e novos campos) ----------
-    function gatherData(){
-      const cardsData = window._cardsAPI && window._cardsAPI.getAllData ? window._cardsAPI.getAllData() : {itens:[],armas:[],magias:[],equips:[],ataques:[]};
-      const ataques = cardsData.ataques || [];
-      const data = {
-        meta: {
-          nome: document.getElementById('nome').value || '',
-          jogador: document.getElementById('jogador').value || '',
-          raca: document.getElementById('raca').value || ''
-        },
-        nivel: Number(document.getElementById('nivel').value || 1),
-        atributos: {
-          forca: Number(document.getElementById('forca').value || 10),
-          destreza: Number(document.getElementById('destreza').value || 10),
-          constit: Number(document.getElementById('const').value || 10),
-          intel: Number(document.getElementById('int').value || 10),
-          sab: Number(document.getElementById('sab').value || 10),
-          car: Number(document.getElementById('car').value || 10)
-        },
-        mods: {
-          modFor: Number(document.getElementById('modFor').value || 0),
-          modDes: Number(document.getElementById('modDes').value || 0),
-          modCon: Number(document.getElementById('modCon').value || 0),
-          modInt: Number(document.getElementById('modInt').value || 0),
-          modSab: Number(document.getElementById('modSab').value || 0),
-          modCar: Number(document.getElementById('modCar').value || 0)
-        },
-        pvs: {
-          max: Number(document.getElementById('pvsMax').value||0),
-          atual: Number(document.getElementById('pvsAtual').value||0)
-        },
-        pms: {
-          max: Number(document.getElementById('pmsMax').value||0),
-          atual: Number(document.getElementById('pmsAtual').value||0)
-        },
-        defesa: {
-          caTotal: Number(document.getElementById('caTotal').value||0),
-          caBase: Number(document.getElementById('caBase').value||0),
-          bonusArm: Number(document.getElementById('bonusArm').value||0),
-          bonusEsc: Number(document.getElementById('bonusEsc').value||0),
-          penalidadeArm: Number(document.getElementById('penalidadeArm').value||0),
-          outrosDef: Number(document.getElementById('outrosDef').value||0),
-          armaduraNome: document.getElementById('armaduraNome').value||'',
-          pArmadura: Number(document.getElementById('pArmadura').value||0),
-          escudoNome: document.getElementById('escudoNome').value||'',
-          pEscudo: Number(document.getElementById('pEscudo').value||0),
-          proficiencias: document.getElementById('proficiencias').value||'',
-          tamanho: document.getElementById('tamanho').value||'Médio',
-          desloc: Number(document.getElementById('desloc').value||0)
-        },
-        skills: {},
-        cards: cardsData,
-        autoMods: !!autoModsEl.checked,
-        carga: {
-          cargaMax: Number(document.getElementById('cargaMax').value||0),
-          levantar: Number(document.getElementById('levantar').value||0),
-          cargaTotal: Number(document.getElementById('cargaTotal').value||0),
-          penalCarga: document.getElementById('penalCarga').value||''
-        }
-      };
-      SKILLS.forEach(s=>{
-        const row = document.getElementById('skill_'+s.key);
-        if(!row) return;
-        data.skills[s.key] = {
-          label: s.label,
-          attr: s.attr,
-          trained: row.querySelector('.trained').checked,
-          extra: Number(row.querySelector('.extra').value || 0),
-          attrmod: Number(row.querySelector('.attrmod').value || 0),
-          total: Number(row.querySelector('.total').value || 0)
-        };
-      });
-      // ataques explicit
-      data.ataques = [];
+  // ---------- CARDS API ----------
+  window._cardsAPI = {
+    createCard,
+    getAllData: function(){
+      const itens = Array.from(document.querySelectorAll('#itens .card')).map(c=>{
+        if(c.dataset.type!=='item') return null;
+        const name = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value||'');
+        const peso = c.querySelector('.display-peso') ? Number(c.querySelector('.display-peso').textContent||0) : Number(c.querySelector('.field-peso')?.value||0);
+        return { nome: name, peso: peso };
+      }).filter(Boolean);
+      const armas = Array.from(document.querySelectorAll('#armas .card')).map(c=>{
+        if(c.dataset.type!=='arma') return null;
+        const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value||'');
+        const dano = c.querySelector('.display-dano') ? c.querySelector('.display-dano').textContent : (c.querySelector('.field-dano')?.value||'');
+        const bonus = c.querySelector('.display-bonus') ? Number(c.querySelector('.display-bonus').textContent||0) : Number(c.querySelector('.field-bonus')?.value||0);
+        return { nome, dano, bonus };
+      }).filter(Boolean);
+      const magias = Array.from(document.querySelectorAll('#magiasList .card')).map(c=>{
+        if(c.dataset.type!=='magia') return null;
+        const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value||'');
+        const desc = c.querySelector('.display-desc') ? c.querySelector('.display-desc').textContent : (c.querySelector('.field-desc')?.value||'');
+        return { nome, desc };
+      }).filter(Boolean);
+      const equips = Array.from(document.querySelectorAll('#equipList .card')).map(c=>{
+        if(c.dataset.type!=='equip') return null;
+        const nome = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value||'');
+        const peso = c.querySelector('.display-peso') ? Number(c.querySelector('.display-peso').textContent||0) : Number(c.querySelector('.field-peso')?.value||0);
+        return { nome, peso };
+      }).filter(Boolean);
+
+      // ataques
+      const ataques = [];
       Array.from(document.querySelectorAll('#attacksTbody tr')).forEach((tr,i)=>{
+        const idx = i+1;
         const nome = tr.querySelector('.atk-nome')?.value||'';
         const bonus = Number(tr.querySelector('.atk-bonus')?.value||0);
         const dano = tr.querySelector('.atk-dano')?.value||'';
         const crit = tr.querySelector('.atk-crit')?.value||'';
         const tipo = tr.querySelector('.atk-tipo')?.value||'';
         const alc = tr.querySelector('.atk-alc')?.value||'';
-        if(nome||dano||bonus||crit||tipo||alc) data.ataques.push({ nome, bonus, dano, crit, tipo, alcance:alc });
+        if(nome||dano||bonus||crit||tipo||alc) ataques.push({ nome, bonus, dano, crit, tipo, alcance:alc });
       });
-      return data;
+
+      return { itens, armas, magias, equips, ataques };
+    },
+    loadAllData: function(obj){
+      const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList'), equipEl=document.getElementById('equipList');
+      itensEl.innerHTML=''; armasEl.innerHTML=''; magiasEl.innerHTML=''; equipEl.innerHTML='';
+      itemCount = armaCount = magiaCount = equipCount = 0;
+      if(obj.itens && Array.isArray(obj.itens)){ obj.itens.forEach(it=>{ itemCount++; itensEl.appendChild(createCard('item', itemCount, { nome: it.nome||'', peso: it.peso||'', viewOnly:true })); }); }
+      if(obj.armas && Array.isArray(obj.armas)){ obj.armas.forEach(a=>{ armaCount++; armasEl.appendChild(createCard('arma', armaCount, { nome: a.nome||'', dano: a.dano||'', bonus: a.bonus||'', viewOnly:true })); }); }
+      if(obj.magias && Array.isArray(obj.magias)){ obj.magias.forEach(m=>{ magiaCount++; magiasEl.appendChild(createCard('magia', magiaCount, { nome: m.nome||'', desc: m.desc||'', viewOnly:true })); }); }
+      if(obj.equips && Array.isArray(obj.equips)){ obj.equips.forEach(eq=>{ equipCount++; equipEl.appendChild(createCard('equip', equipCount, { nome: eq.nome||'', peso: eq.peso||'', viewOnly:true })); }); }
+      if(obj.ataques && Array.isArray(obj.ataques)){
+        const rows = document.querySelectorAll('#attacksTbody tr');
+        rows.forEach((tr,i)=>{
+          const a = obj.ataques[i];
+          if(a){ tr.querySelector('.atk-nome').value = a.nome||''; tr.querySelector('.atk-bonus').value = a.bonus||0; tr.querySelector('.atk-dano').value = a.dano||''; tr.querySelector('.atk-crit').value = a.crit||''; tr.querySelector('.atk-tipo').value = a.tipo||''; tr.querySelector('.atk-alc').value = a.alcance||''; }
+        });
+      }
+      updateCargaValues();
     }
+  };
 
-    document.getElementById('btnSave').addEventListener('click', ()=> {
-      const data = gatherData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = (document.getElementById('nome').value || 'ficha') + '.json';
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  // ---------- PERÍCIAS: init / render ----------
+  function initSkillsArea(){
+    const container = document.getElementById('skillsContainer');
+    if(!container) return;
+    container.innerHTML = '';
+    SKILLS.forEach(s=>{
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      row.id = 'skill_' + s.key;
+
+      const nameDiv = document.createElement('div');
+      nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
+      row.appendChild(nameDiv);
+
+      const selWrap = document.createElement('div');
+      selWrap.style.display = 'flex';
+      selWrap.style.flexDirection = 'column';
+      selWrap.innerHTML =
+        `<select class="attrSelect" data-key="${s.key}" title="Atributo usado">
+           <option value="${s.attr}">Padrão (${s.attr.replace('mod','').toUpperCase()})</option>
+           <option value="modFor">For</option>
+           <option value="modDes">Des</option>
+           <option value="modCon">Con</option>
+           <option value="modInt">Int</option>
+           <option value="modSab">Sab</option>
+           <option value="modCar">Car</option>
+           <option value="other">Outro</option>
+         </select>
+         <input type="number" class="customAttr tiny" data-key="${s.key}" placeholder="Outro mod" style="display:none;margin-top:6px;padding:6px;height:34px">`;
+      row.appendChild(selWrap);
+
+      const trainedWrap = document.createElement('div');
+      trainedWrap.style.display = 'flex';
+      trainedWrap.style.alignItems = 'center';
+      trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
+      row.appendChild(trainedWrap);
+
+      const extraWrap = document.createElement('div');
+      extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
+      row.appendChild(extraWrap);
+
+      const attrWrap = document.createElement('div');
+      attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
+      row.appendChild(attrWrap);
+
+      const totalWrap = document.createElement('div');
+      totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
+      row.appendChild(totalWrap);
+
+      container.appendChild(row);
     });
 
-    document.getElementById('btnLoad').addEventListener('click', ()=> document.getElementById('fileLoader').click());
-    document.getElementById('fileLoader').addEventListener('change', async (e)=>{
-      const f = e.target.files[0];
-      if(!f) return;
-      try{
-        const txt = await f.text();
-        const data = JSON.parse(txt);
-        if(data.nivel) document.getElementById('nivel').value = data.nivel;
-        if(data.atributos){
-          if(data.atributos.forca !== undefined) document.getElementById('forca').value = data.atributos.forca;
-          if(data.atributos.destreza !== undefined) document.getElementById('destreza').value = data.atributos.destreza;
-          if(data.atributos.constit !== undefined) document.getElementById('const').value = data.atributos.constit;
-          if(data.atributos.intel !== undefined) document.getElementById('int').value = data.atributos.intel;
-          if(data.atributos.sab !== undefined) document.getElementById('sab').value = data.atributos.sab;
-          if(data.atributos.car !== undefined) document.getElementById('car').value = data.atributos.car;
+    // Delegated listeners (container-level)
+    container.addEventListener('change', (e)=>{
+      if(e.target.matches('.attrSelect')){
+        const row = document.getElementById('skill_' + e.target.dataset.key);
+        const custom = row.querySelector('.customAttr');
+        if(e.target.value === 'other'){
+          custom.style.display = 'block';
+        } else {
+          custom.style.display = 'none';
         }
-        if(data.mods){
-          Object.keys(data.mods).forEach(k=>{
-            const el = document.getElementById(k);
-            if(el) el.value = data.mods[k];
-          });
-        }
-        if(data.pvs){
-          if(data.pvs.max!==undefined) document.getElementById('pvsMax').value = data.pvs.max;
-          if(data.pvs.atual!==undefined) document.getElementById('pvsAtual').value = data.pvs.atual;
-        }
-        if(data.pms){
-          if(data.pms.max!==undefined) document.getElementById('pmsMax').value = data.pms.max;
-          if(data.pms.atual!==undefined) document.getElementById('pmsAtual').value = data.pms.atual;
-        }
-        if(data.defesa){
-          Object.keys(data.defesa).forEach(k=>{
-            const el = document.getElementById(k);
-            if(el) el.value = data.defesa[k];
-          });
-        }
-        if(data.skills){
-          Object.keys(data.skills).forEach(sk=>{
-            const sdata = data.skills[sk];
-            const row = document.getElementById('skill_'+sk);
-            if(row){
-              row.querySelector('.trained').checked = !!sdata.trained;
-              row.querySelector('.extra').value = sdata.extra || 0;
-              if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
-            }
-          });
-        }
-        if(data.ataques){
-          const rows = document.querySelectorAll('#attacksTbody tr');
-          rows.forEach((tr,i)=>{
-            const a = data.ataques[i];
-            if(a){ tr.querySelector('.atk-nome').value = a.nome||''; tr.querySelector('.atk-bonus').value = a.bonus||0; tr.querySelector('.atk-dano').value = a.dano||''; tr.querySelector('.atk-crit').value = a.crit||''; tr.querySelector('.atk-tipo').value = a.tipo||''; tr.querySelector('.atk-alc').value = a.alcance||''; }
-          });
-        }
-        if(data.cards && window._cardsAPI && window._cardsAPI.loadAllData) window._cardsAPI.loadAllData(data.cards);
-        if(data.autoMods) document.getElementById('autoMods').checked = !!data.autoMods;
-        maybeAutoCalcMods();
-        recalcAll();
-        alert('Ficha carregada.');
-      }catch(err){
-        alert('Erro ao carregar JSON: ' + err.message);
-      } finally { e.target.value = ''; }
+        recalcAllSkills();
+      } else if(e.target.matches('.trained')){
+        recalcAllSkills();
+      }
     });
 
-    document.getElementById('btnPrint').addEventListener('click', ()=> window.print());
+    container.addEventListener('input', (e)=>{
+      if(e.target.matches('.customAttr') || e.target.matches('.extra')){
+        recalcAllSkills();
+      }
+    });
 
-    // recalcula periodicamente (segurança)
-    setInterval(recalcAll, 1000);
+    // if global attributes change, recalc skills
+    Object.values(ATTR_TO_MOD).forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('input', recalcAllSkills);
+    });
+    if(nivelEl) nivelEl.addEventListener('input', recalcAllSkills);
+  }
 
-    // ------- CARGA / EQUIP logic -------
-    function updateCargaValues(){
-      // calcular carga máxima e levantar baseado na Força
-      const forca = Number(document.getElementById('forca').value||10);
-      const cargaMax = forca * 3;
-      const levantar = forca * 10;
-      document.getElementById('cargaMax').value = cargaMax;
-      document.getElementById('levantar').value = levantar;
+  // ---------- MODS automáticos ----------
+  function getModifierFromScore(score){
+    score = Number(score) || 0;
+    if(score <= 1) return -5;
+    if(score <= 3) return -4;
+    if(score <= 5) return -3;
+    if(score <= 7) return -2;
+    if(score <= 9) return -1;
+    if(score <= 11) return 0;
+    if(score <= 13) return 1;
+    if(score <= 15) return 2;
+    if(score <= 17) return 3;
+    if(score <= 19) return 4;
+    if(score <= 21) return 5;
+    if(score <= 23) return 6;
+    if(score <= 25) return 7;
+    return 7 + Math.floor((score - 25) / 2);
+  }
 
-      // soma pesos dos equipamentos
-      const items = Array.from(document.querySelectorAll('#equipList .card')).map(c=>{
-        const pesoEl = c.querySelector('.display-peso') || c.querySelector('.field-peso');
-        const peso = pesoEl ? Number(pesoEl.textContent || pesoEl.value || 0) : 0;
-        return peso;
-      });
-      const total = items.reduce((s,n)=>s + (Number(n)||0),0);
-      document.getElementById('cargaTotal').value = total;
+  function maybeAutoCalcMods(){
+    const auto = !!(autoModsEl && autoModsEl.checked);
+    Object.keys(ATTR_TO_MOD).forEach(attrId=>{
+      const score = Number(document.getElementById(attrId).value || 0);
+      const modId = ATTR_TO_MOD[attrId];
+      const modEl = document.getElementById(modId);
+      if(!modEl) return;
+      if(auto){
+        modEl.value = getModifierFromScore(score);
+        modEl.setAttribute('readonly','');
+      } else {
+        modEl.removeAttribute('readonly');
+      }
+    });
+  }
 
-      // penalidade
-      const penEl = document.getElementById('penalCarga');
+  // ---------- PERÍCIAS: cálculos ----------
+  function halfLevel(){
+    return Math.floor(Number(nivelEl?.value || 1) / 2);
+  }
+
+  function updateAttrModsForSkills(){
+    SKILLS.forEach(s=>{
+      const row = document.getElementById('skill_' + s.key);
+      if(!row) return;
+      const sel = row.querySelector('.attrSelect');
+      const attrmodEl = row.querySelector('.attrmod');
+      if(!sel || !attrmodEl) return;
+      if(sel.value === 'other'){
+        const custom = Number(row.querySelector('.customAttr').value || 0);
+        attrmodEl.value = custom;
+      } else {
+        const global = document.getElementById(sel.value);
+        attrmodEl.value = global ? Number(global.value || 0) : 0;
+      }
+    });
+  }
+
+  function recalcAllSkills(){
+    updateAttrModsForSkills();
+    const half = halfLevel();
+    SKILLS.forEach(s=>{
+      const row = document.getElementById('skill_' + s.key);
+      if(!row) return;
+      const trained = !!row.querySelector('.trained').checked;
+      const extra = Number(row.querySelector('.extra').value || 0);
+      const attr = Number(row.querySelector('.attrmod').value || 0);
+      let total = attr + extra;
+      if(trained){
+        total += half + 2;
+      }
+      row.querySelector('.total').value = total;
+    });
+  }
+
+  // ---------- Cálculo global (atributos/perícias/carga) ----------
+  function updateAttrModsFromScores(){
+    // atualiza campos attrmod (padrão) com base nos valores dos atributos (quando autoMods ativo)
+    maybeAutoCalcMods();
+  }
+
+  function recalcAll(){
+    // manter compatibilidade: atualiza mods automáticos, perícias e carga
+    updateAttrModsForSkills(); // garante que attrmod esteja atualizado com selects
+    recalcAllSkills();
+    updateCargaValues();
+  }
+
+  // ---------- Carga / Equip ----------
+  function updateCargaValues(){
+    const forca = Number(document.getElementById('forca').value||10);
+    const cargaMax = forca * 3;
+    const levantar = forca * 10;
+    const cargaMaxEl = document.getElementById('cargaMax');
+    const levantarEl = document.getElementById('levantar');
+    if(cargaMaxEl) cargaMaxEl.value = cargaMax;
+    if(levantarEl) levantarEl.value = levantar;
+
+    // soma pesos dos equipamentos
+    const items = Array.from(document.querySelectorAll('#equipList .card')).map(c=>{
+      const pesoEl = c.querySelector('.display-peso') || c.querySelector('.field-peso');
+      const peso = pesoEl ? Number(pesoEl.textContent || pesoEl.value || 0) : 0;
+      return peso;
+    });
+    const total = items.reduce((s,n)=>s + (Number(n)||0),0);
+    const cargaTotalEl = document.getElementById('cargaTotal');
+    if(cargaTotalEl) cargaTotalEl.value = total;
+
+    const penEl = document.getElementById('penalCarga');
+    if(penEl){
       if(total > cargaMax){
         penEl.value = '-2 (sobrepeso) — Desloc. reduzido em 3m';
-        // reduzir deslocamento visualmente (não sobrescreve campo original)
-        const deslocBase = Number(document.getElementById('desloc').value||0);
-        // note: não alteramos permanentemente o campo desloc — só mostramos aviso na penalidade.
       } else {
         penEl.value = 'Nenhuma';
       }
     }
+  }
 
-    // chamada quando o usuário atualiza manualmente força etc.
-    document.getElementById('forca').addEventListener('input', updateCargaValues);
+  // ---------- Public loader for skills (used by JSON loader) ----------
+  window.loadSkillsFromData = function(skillsData){
+    if(!skillsData) return;
+    Object.keys(skillsData).forEach(k=>{
+      const sdat = skillsData[k];
+      const row = document.getElementById('skill_' + k);
+      if(!row) return;
+      const sel = row.querySelector('.attrSelect');
+      const custom = row.querySelector('.customAttr');
 
-  })();
-  </script>
+      const choice = sdat && (sdat.attrChoice || sdat.attr);
+      if(choice && sel){
+        const opts = Array.from(sel.options).map(o=>o.value);
+        if(opts.includes(choice)){
+          sel.value = choice;
+          custom.style.display = (choice === 'other') ? 'block' : 'none';
+        } else {
+          sel.value = 'other';
+          custom.style.display = 'block';
+        }
+      }
+
+      if(sdat.customAttr !== undefined && row.querySelector('.customAttr')) {
+        row.querySelector('.customAttr').value = sdat.customAttr;
+      } else if(sdat.attrmod !== undefined && row.querySelector('.customAttr')) {
+        row.querySelector('.customAttr').value = sdat.attrmod;
+      }
+
+      if(sdat.trained !== undefined) row.querySelector('.trained').checked = !!sdat.trained;
+      if(sdat.extra !== undefined) row.querySelector('.extra').value = sdat.extra;
+    });
+    try{ recalcAllSkills(); }catch(e){ try{ recalcAll(); }catch(_){} }
+  };
+
+  // ---------- SALVAR / CARREGAR / GATHER ----------
+  function gatherData(){
+    const cardsData = window._cardsAPI && window._cardsAPI.getAllData ? window._cardsAPI.getAllData() : {itens:[],armas:[],magias:[],equips:[],ataques:[]};
+    const data = {
+      meta: {
+        nome: document.getElementById('nome')?.value || '',
+        jogador: document.getElementById('jogador')?.value || '',
+        raca: document.getElementById('raca')?.value || ''
+      },
+      nivel: Number(document.getElementById('nivel')?.value || 1),
+      atributos: {
+        forca: Number(document.getElementById('forca')?.value || 10),
+        destreza: Number(document.getElementById('destreza')?.value || 10),
+        constit: Number(document.getElementById('const')?.value || 10),
+        intel: Number(document.getElementById('int')?.value || 10),
+        sab: Number(document.getElementById('sab')?.value || 10),
+        car: Number(document.getElementById('car')?.value || 10)
+      },
+      mods: {
+        modFor: Number(document.getElementById('modFor')?.value || 0),
+        modDes: Number(document.getElementById('modDes')?.value || 0),
+        modCon: Number(document.getElementById('modCon')?.value || 0),
+        modInt: Number(document.getElementById('modInt')?.value || 0),
+        modSab: Number(document.getElementById('modSab')?.value || 0),
+        modCar: Number(document.getElementById('modCar')?.value || 0)
+      },
+      pvs: {
+        max: Number(document.getElementById('pvsMax')?.value||0),
+        atual: Number(document.getElementById('pvsAtual')?.value||0)
+      },
+      pms: {
+        max: Number(document.getElementById('pmsMax')?.value||0),
+        atual: Number(document.getElementById('pmsAtual')?.value||0)
+      },
+      defesa: {
+        caTotal: Number(document.getElementById('caTotal')?.value||0),
+        caBase: Number(document.getElementById('caBase')?.value||0),
+        bonusArm: Number(document.getElementById('bonusArm')?.value||0),
+        bonusEsc: Number(document.getElementById('bonusEsc')?.value||0),
+        penalidadeArm: Number(document.getElementById('penalidadeArm')?.value||0),
+        outrosDef: Number(document.getElementById('outrosDef')?.value||0),
+        armaduraNome: document.getElementById('armaduraNome')?.value||'',
+        pArmadura: Number(document.getElementById('pArmadura')?.value||0),
+        escudoNome: document.getElementById('escudoNome')?.value||'',
+        pEscudo: Number(document.getElementById('pEscudo')?.value||0),
+        proficiencias: document.getElementById('proficiencias')?.value||'',
+        tamanho: document.getElementById('tamanho')?.value||'Médio',
+        desloc: Number(document.getElementById('desloc')?.value||0)
+      },
+      skills: {},
+      cards: cardsData,
+      autoMods: !!(autoModsEl && autoModsEl.checked),
+      carga: {
+        cargaMax: Number(document.getElementById('cargaMax')?.value||0),
+        levantar: Number(document.getElementById('levantar')?.value||0),
+        cargaTotal: Number(document.getElementById('cargaTotal')?.value||0),
+        penalCarga: document.getElementById('penalCarga')?.value||''
+      }
+    };
+
+    // skills: salvar escolha de atributo (attrChoice), customAttr e demais campos
+    SKILLS.forEach(s=>{
+      const row = document.getElementById('skill_'+s.key);
+      if(!row) return;
+      const sel = row.querySelector('.attrSelect');
+      const attrChoice = sel ? sel.value : s.attr;
+      const customAttr = row.querySelector('.customAttr') ? Number(row.querySelector('.customAttr').value || 0) : undefined;
+      const attrmod = Number(row.querySelector('.attrmod')?.value || 0);
+      data.skills[s.key] = {
+        label: s.label,
+        attr: s.attr,
+        attrChoice: attrChoice,
+        customAttr: customAttr,
+        trained: !!row.querySelector('.trained')?.checked,
+        extra: Number(row.querySelector('.extra')?.value || 0),
+        attrmod: attrmod,
+        total: Number(row.querySelector('.total')?.value || 0)
+      };
+    });
+
+    // ataques explicit
+    data.ataques = [];
+    Array.from(document.querySelectorAll('#attacksTbody tr')).forEach((tr,i)=>{
+      const nome = tr.querySelector('.atk-nome')?.value||'';
+      const bonus = Number(tr.querySelector('.atk-bonus')?.value||0);
+      const dano = tr.querySelector('.atk-dano')?.value||'';
+      const crit = tr.querySelector('.atk-crit')?.value||'';
+      const tipo = tr.querySelector('.atk-tipo')?.value||'';
+      const alc = tr.querySelector('.atk-alc')?.value||'';
+      if(nome||dano||bonus||crit||tipo||alc) data.ataques.push({ nome, bonus, dano, crit, tipo, alcance:alc });
+    });
+
+    // mantém snapshot para uso por outros scripts (ex: PDF)
+    window.__lastGather_data_cache = data;
+    window.gatherData = function(){ return JSON.parse(JSON.stringify(window.__lastGather_data_cache || data)); };
+
+    return data;
+  }
+
+  // ---------- EVENTOS: SALVAR / CARREGAR JSON ----------
+  document.getElementById('btnSave').addEventListener('click', ()=> {
+    const data = gatherData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (document.getElementById('nome')?.value || 'ficha') + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btnLoad').addEventListener('click', ()=> document.getElementById('fileLoader').click());
+  document.getElementById('fileLoader').addEventListener('change', async (e)=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    try{
+      const txt = await f.text();
+      const data = JSON.parse(txt);
+
+      if(data.nivel) document.getElementById('nivel').value = data.nivel;
+      if(data.atributos){
+        if(data.atributos.forca !== undefined) document.getElementById('forca').value = data.atributos.forca;
+        if(data.atributos.destreza !== undefined) document.getElementById('destreza').value = data.atributos.destreza;
+        if(data.atributos.constit !== undefined) document.getElementById('const').value = data.atributos.constit;
+        if(data.atributos.intel !== undefined) document.getElementById('int').value = data.atributos.intel;
+        if(data.atributos.sab !== undefined) document.getElementById('sab').value = data.atributos.sab;
+        if(data.atributos.car !== undefined) document.getElementById('car').value = data.atributos.car;
+      }
+      if(data.mods){
+        Object.keys(data.mods).forEach(k=>{
+          const el = document.getElementById(k);
+          if(el) el.value = data.mods[k];
+        });
+      }
+      if(data.pvs){
+        if(data.pvs.max!==undefined) document.getElementById('pvsMax').value = data.pvs.max;
+        if(data.pvs.atual!==undefined) document.getElementById('pvsAtual').value = data.pvs.atual;
+      }
+      if(data.pms){
+        if(data.pms.max!==undefined) document.getElementById('pmsMax').value = data.pms.max;
+        if(data.pms.atual!==undefined) document.getElementById('pmsAtual').value = data.pms.atual;
+      }
+      if(data.defesa){
+        Object.keys(data.defesa).forEach(k=>{
+          const el = document.getElementById(k);
+          if(el) el.value = data.defesa[k];
+        });
+      }
+
+      // skills: usa o loader público (mais robusto)
+      if(data.skills){
+        if(window.loadSkillsFromData){
+          window.loadSkillsFromData(data.skills);
+        } else {
+          // fallback mínimo
+          Object.keys(data.skills).forEach(sk=>{
+            const sdata = data.skills[sk];
+            const row = document.getElementById('skill_'+sk);
+            if(row){
+              if(sdata.trained !== undefined) row.querySelector('.trained').checked = !!sdata.trained;
+              if(sdata.extra !== undefined) row.querySelector('.extra').value = sdata.extra;
+              if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
+              if(sdata.customAttr !== undefined && row.querySelector('.customAttr')) row.querySelector('.customAttr').value = sdata.customAttr;
+            }
+          });
+        }
+      }
+
+      if(data.ataques){
+        const rows = document.querySelectorAll('#attacksTbody tr');
+        rows.forEach((tr,i)=>{
+          const a = data.ataques[i];
+          if(a){ tr.querySelector('.atk-nome').value = a.nome||''; tr.querySelector('.atk-bonus').value = a.bonus||0; tr.querySelector('.atk-dano').value = a.dano||''; tr.querySelector('.atk-crit').value = a.crit||''; tr.querySelector('.atk-tipo').value = a.tipo||''; tr.querySelector('.atk-alc').value = a.alcance||''; }
+        });
+      }
+      if(data.cards && window._cardsAPI && window._cardsAPI.loadAllData) window._cardsAPI.loadAllData(data.cards);
+      if(data.autoMods && autoModsEl) autoModsEl.checked = !!data.autoMods;
+
+      // recalc geral
+      maybeAutoCalcMods();
+      recalcAll();
+      alert('Ficha carregada.');
+    }catch(err){
+      alert('Erro ao carregar JSON: ' + err.message);
+    } finally { e.target.value = ''; }
+  });
+
+  // ---------- Interações e recalculadores vinculados ----------
+  // watchers para inputs numéricos: recalcula ao alterar
+  document.addEventListener('input', (e)=>{
+    if(!e.target) return;
+    const t = e.target;
+    if(t.matches('#sheet input[type="number"], #sheet input[type="text"], #sheet select')) {
+      // evita recalc a cada tecla para campos grandes, mas é ok
+      recalcAll();
+    }
+  });
+
+  if(autoModsEl) autoModsEl.addEventListener('change', ()=>{ maybeAutoCalcMods(); recalcAll(); });
+  if(nivelEl) nivelEl.addEventListener('input', ()=>{ recalcAll(); });
+
+  // recalcula periodicamente (segurança)
+  setInterval(recalcAll, 1000);
+
+  // ---------- Carga / Força listener ----------
+  const forEl = document.getElementById('forca');
+  if(forEl) forEl.addEventListener('input', updateCargaValues);
+
+  // ---------- util export público ----------
+  window.gatherData = gatherData;
+
+  // ---------- PDF / preenchimento (preserva seu código inicial) ----------
+  // não alterei a rotina de PDF (assumir que seu script externo usa window.gatherData)
+  // se quiser que eu integre mudanças no fillPdfFromForm diga que parte deseja ajustar.
+
+})();
+</script>
+
 
   <!-- PDF-lib (mantido) e script para preenchimento inteligente -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>

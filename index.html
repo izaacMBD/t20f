@@ -330,15 +330,24 @@
 
       // cria 5 linhas de ataque iniciais
       const attacksTbody = document.getElementById('attacksTbody');
-      for(let i=0;i<=5;i++){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><input type="text" class="atk-nome" data-i="${i}"></td>
-                        <td><input type="number" class="atk-bonus" data-i="${i}" value="0"></td>
-                        <td><input type="text" class="atk-dano" data-i="${i}"></td>
-                        <td><input type="text" class="atk-crit" data-i="${i}"></td>
-                        <td><input type="text" class="atk-tipo" data-i="${i}"></td>`;
-        attacksTbody.appendChild(tr);
+
+      // Limpa todas as linhas existentes
+      attacksTbody.innerHTML = '';
+      
+      // Cria 5 linhas
+      for (let i = 1; i <= 5; i++) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+              <td><input type="text" class="atk-nome" data-i="${i}"></td>
+              <td><input type="number" class="atk-bonus" data-i="${i}" value="0"></td>
+              <td><input type="text" class="atk-dano" data-i="${i}"></td>
+              <td><input type="text" class="atk-crit" data-i="${i}"></td>
+              <td><input type="text" class="atk-tipo" data-i="${i}"></td>
+              <td><input type="text" class="atk-tipo" data-i="${i}"></td>
+          `;
+          attacksTbody.appendChild(tr);
       }
+
 
       // att listeners to update carga when equip changes
       equipEl.addEventListener('input', updateCargaValues);

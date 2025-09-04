@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tormenta20 — Ficha (perícias + mods automáticos corrigido)</title>
+  <title>Tormenta20 — Ficha (com Defesa, PV/PM, Ataques, Equipamentos)</title>
   <style>
     :root{ --bg:#06060a; --fg:#eef0f2; --muted:#98a0a6; --card:#0f1114; --accent:#1f8feb; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:var(--bg);color:var(--fg);padding:12px}
-    .app{max-width:920px;margin:0 auto}
+    .app{max-width:980px;margin:0 auto}
     header{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     header h1{font-size:18px;margin:0}
     .controls{display:flex;gap:6px;flex-wrap:wrap}
@@ -38,8 +38,10 @@
     .card.small{padding:8px}
     .card .card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
     .card .display-row{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap}
-    .card .display-row .label{color:var(--muted);font-size:12px;width:80px}
     input[readonly]{opacity:0.85;background:#0a0a0c}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:6px;border-bottom:1px dashed #151617;text-align:left}
+    .muted-note{font-size:12px;color:#9aa3a9}
     @media (max-width:720px){
       .skill-row{grid-template-columns:1fr 60px 60px 72px 72px}
       .small{flex:0 0 72px}
@@ -49,7 +51,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>Tormenta20 — Ficha (perícias + mods automáticos corrigido)</h1>
+      <h1>Tormenta20 — Ficha (perícias + defesa, PV/PM, ataques e equipamentos)</h1>
       <div class="controls">
         <button id="btnSave" class="btn">Salvar JSON</button>
         <button id="btnLoad" class="btn">Carregar JSON</button>
@@ -128,20 +130,114 @@
           <label class="muted">
             <input type="checkbox" id="autoMods"> Calcular mods automaticamente a partir do valor do atributo
           </label>
-          <div class="tiny muted">(tabela padrão — 1:-5, 2-3:-4, 4-5:-3, 6-7:-2, 8-9:-1, 10-11:0, 12-13:+1, ... 24-25:+7; acima segue regra)</div>
+          <div class="tiny muted">(tabela padrão — 1:-5, 2-3:-4, 4-5:-3, 6-7:-2, 8-9:-1, 10-11:0, 12-13:+1, ...)</div>
         </div>
       </section>
 
-      <!-- PERÍCIAS -->
+      <!-- PV / PM -->
       <section class="card">
-        <div class="section-title">Perícias</div>
-        <div class="tiny muted" style="margin-bottom:8px">Fórmula (aplicada apenas se Treinada): <strong>½ Nível + Mod. do Atributo</strong>. Treinada também adiciona +2. Se não treinada, será apenas o campo "Outros" (mais o +2 se marcar Treinada).</div>
-        <div class="skills-container" id="skillsContainer"></div>
+        <div class="section-title">Pontos de Vida & Mana</div>
+        <div class="row">
+          <div class="col"><label>PVs Máximos</label><input type="number" id="pvsMax" value="" min="0"></div>
+          <div class="col"><label>PVs Atuais</label><input type="number" id="pvsAtual" value="" min="0"></div>
+          <div class="col"><label>PMs Máximos</label><input type="number" id="pmsMax" value="" min="0"></div>
+          <div class="col"><label>PMs Atuais</label><input type="number" id="pmsAtual" value="" min="0"></div>
+        </div>
+      </section>
+
+      <!-- ATAQUES (até 5) -->
+      <section class="card">
+        <div class="section-title">Ataques (até 5)</div>
+        <table>
+          <thead><tr><th>Nome</th><th>Bônus</th><th>Dano</th><th>Crítico</th><th>Tipo</th><th>Alcance</th></tr></thead>
+          <tbody id="attacksTbody">
+            <!-- será populado via JS (5 linhas) -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- DEFESA / ARMADURA & ESCUDO -->
+      <section class="card">
+        <div class="section-title">Defesa / Armadura & Escudo</div>
+        <div class="row">
+          <div class="col"><label>CA (Total)</label><input type="number" id="caTotal" value="10"></div>
+          <div class="col"><label>Base CA</label><input type="number" id="caBase" value="10"></div>
+          <div class="col"><label>Bônus Armadura</label><input type="number" id="bonusArm" value="0"></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="col"><label>Bônus Escudo</label><input type="number" id="bonusEsc" value="0"></div>
+          <div class="col"><label>Penalidade de Armadura</label><input type="number" id="penalidadeArm" value="0"></div>
+          <div class="col"><label>Outros Bônus</label><input type="number" id="outrosDef" value="0"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <div style="flex:1;min-width:160px">
+            <label>Armadura (nome)</label><input type="text" id="armaduraNome">
+          </div>
+          <div style="min-width:120px">
+            <label>P. Armadura</label><input type="number" id="pArmadura" value="0">
+          </div>
+          <div style="flex:1;min-width:160px">
+            <label>Escudo (nome)</label><input type="text" id="escudoNome">
+          </div>
+          <div style="min-width:120px">
+            <label>P. Escudo</label><input type="number" id="pEscudo" value="0">
+          </div>
+        </div>
+
+        <div style="margin-top:8px">
+          <label>Proficiências (texto)</label>
+          <input type="text" id="proficiencias" placeholder="Ex: Armaduras leves, escudos, armas simples...">
+        </div>
+
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="min-width:200px">
+            <label>Tamanho</label>
+            <select id="tamanho">
+              <option value="Minúsculo">Minúsculo</option>
+              <option value="Pequeno">Pequeno</option>
+              <option value="Médio" selected>Médio</option>
+              <option value="Grande">Grande</option>
+              <option value="Gigante">Gigante</option>
+            </select>
+          </div>
+          <div style="min-width:160px">
+            <label>Deslocamento (m)</label><input type="number" id="desloc" value="9" min="0">
+          </div>
+          <div style="flex:1">
+            <div class="muted-note">Modificador de atributo usado para Defesa (selecione no PDF): mostrado como mod de Destreza por padrão.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ITENS / EQUIPAMENTOS (com peso) -->
+      <section class="card">
+        <div class="section-title">Equipamentos (nome + peso)</div>
+        <div id="equipList" class="list"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="button" id="addEquip" class="btn">+ Adicionar Equipamento</button>
+          <button type="button" id="clearEquip" class="btn">Limpar</button>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
+          <div style="min-width:160px">
+            <label>Carga Máxima (3x Força)</label><input type="number" id="cargaMax" readonly>
+          </div>
+          <div style="min-width:160px">
+            <label>Levantar (até 10x Força)</label><input type="number" id="levantar" readonly>
+          </div>
+          <div style="min-width:160px">
+            <label>Carga Total</label><input type="number" id="cargaTotal" readonly>
+          </div>
+          <div style="min-width:220px">
+            <label>Penalidade por Carga</label><input type="text" id="penalCarga" readonly>
+          </div>
+        </div>
       </section>
 
       <!-- ITENS/ARMAS/MAGIAS (mantidos) -->
       <section class="card">
-        <div class="section-title">Itens</div>
+        <div class="section-title">Itens livres</div>
         <div id="itens" class="list"></div>
         <div style="margin-top:8px;display:flex;gap:8px">
           <button type="button" id="addItem" class="btn">+ Adicionar Item</button>
@@ -165,13 +261,21 @@
       </section>
     </form>
 
-    <footer class="tiny muted">Atualizado: mods automáticos corrigidos.</footer>
+    <footer class="tiny muted">Atualizado: adicionadas seções de Defesa, PV/PM, Ataques, Tamanho, Deslocamento e Carga. PDF mapping heurístico incluído. :contentReference[oaicite:1]{index=1}</footer>
+
+    <!-- PDF controls -->
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <input id="fileLoaderPdf" type="file" accept="application/pdf" />
+      <button id="btnExportPdf" class="btn">Exportar PDF preenchido</button>
+      <div id="pdfStatus" class="muted tiny" style="margin-left:8px"></div>
+    </div>
   </div>
 
-  <!-- cards CRUD (igual) -->
+  <!-- cards CRUD (igual adaptado) -->
   <script>
   (function(){
-    let itemCount = 0, armaCount = 0, magiaCount = 0;
+    let itemCount = 0, armaCount = 0, magiaCount = 0, equipCount = 0;
+
     function createCard(type, idx, data = {}) {
       const div = document.createElement('div');
       div.className = 'card small';
@@ -186,34 +290,63 @@
       actions.appendChild(btnEdit); actions.appendChild(btnRemove);
       function escapeAttr(v){ if(v===undefined||v===null) return ''; return String(v).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
       function escapeHtml(v){ if(v===undefined||v===null) return ''; return String(v).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
       if(type==='item'){ const nome=data.nome||''; const peso=data.peso||''; display.innerHTML = `<div class="display-row"><div class="label">Item</div><div><strong class="display-name">${escapeHtml(nome)}</strong></div><div class="label">Peso</div><div><span class="display-peso">${escapeHtml(String(peso))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Item" value="${escapeAttr(nome)}"><input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}"></div>`; }
       if(type==='arma'){ const nome=data.nome||''; const dano=data.dano||''; const bonus=data.bonus||''; display.innerHTML = `<div class="display-row"><div class="label">Nome</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div><div class="label">Dano</div><div><span class="display-dano">${escapeHtml(dano)}</span></div><div class="label">Bônus</div><div><span class="display-bonus">${escapeHtml(String(bonus))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Nome da Arma" value="${escapeAttr(nome)}"><input type="text" class="field-dano" placeholder="Dano" value="${escapeAttr(dano)}"><input type="number" class="field-bonus" placeholder="Bônus" value="${escapeAttr(bonus)}"></div>`; }
       if(type==='magia'){ const nome=data.nome||''; const desc=data.desc||''; display.innerHTML = `<div class="display-row"><div class="label">Magia</div><div><strong class="display-nome">${escapeHtml(nome)}</strong></div><div style="width:100%;margin-top:6px"><div class="label">Efeito</div><div class="display-desc">${escapeHtml(desc)}</div></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-direction:column"><input type="text" class="field-nome" placeholder="Nome da Magia" value="${escapeAttr(nome)}"><textarea class="field-desc" placeholder="Efeitos">${escapeAttr(desc)}</textarea></div>`; }
+      if(type==='equip'){ const nome=data.nome||''; const peso=data.peso||''; display.innerHTML = `<div class="display-row"><div class="label">Equip</div><div><strong class="display-name">${escapeHtml(nome)}</strong></div><div class="label">Peso</div><div><span class="display-peso">${escapeHtml(String(peso))}</span></div></div>`; edit.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" class="field-nome" placeholder="Equipamento" value="${escapeAttr(nome)}"><input type="number" class="field-peso" placeholder="Peso" value="${escapeAttr(peso)}"></div>`; }
+
       div.appendChild(display); div.appendChild(edit); div.appendChild(actions);
-      btnEdit.addEventListener('click', ()=>{ const isEditing = edit.style.display !== 'none'; if(isEditing){ if(type==='item'){ const nomeVal = div.querySelector('.field-nome').value||''; const pesoVal = div.querySelector('.field-peso').value||''; div.querySelector('.display-name').textContent = nomeVal; div.querySelector('.display-peso').textContent = pesoVal; } if(type==='arma'){ const nomeVal = div.querySelector('.field-nome').value||''; const danoVal = div.querySelector('.field-dano').value||''; const bonusVal = div.querySelector('.field-bonus').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-dano').textContent = danoVal; div.querySelector('.display-bonus').textContent = bonusVal; } if(type==='magia'){ const nomeVal = div.querySelector('.field-nome').value||''; const descVal = div.querySelector('.field-desc').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-desc').textContent = descVal; } edit.style.display='none'; display.style.display='flex'; btnEdit.textContent='Editar'; } else { edit.style.display='block'; display.style.display='none'; btnEdit.textContent='Salvar'; } });
-      btnRemove.addEventListener('click', ()=>{ if(confirm('Remover este '+type+'?')) div.remove(); });
+      btnEdit.addEventListener('click', ()=>{ const isEditing = edit.style.display !== 'none'; if(isEditing){ if(type==='item' || type==='equip'){ const nomeVal = div.querySelector('.field-nome').value||''; const pesoVal = div.querySelector('.field-peso').value||''; div.querySelector('.display-name').textContent = nomeVal; div.querySelector('.display-peso').textContent = pesoVal; } if(type==='arma'){ const nomeVal = div.querySelector('.field-nome').value||''; const danoVal = div.querySelector('.field-dano').value||''; const bonusVal = div.querySelector('.field-bonus').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-dano').textContent = danoVal; div.querySelector('.display-bonus').textContent = bonusVal; } if(type==='magia'){ const nomeVal = div.querySelector('.field-nome').value||''; const descVal = div.querySelector('.field-desc').value||''; div.querySelector('.display-nome').textContent = nomeVal; div.querySelector('.display-desc').textContent = descVal; } edit.style.display='none'; display.style.display='flex'; btnEdit.textContent='Editar'; updateCargaValues(); } else { edit.style.display='block'; display.style.display='none'; btnEdit.textContent='Salvar'; } });
+      btnRemove.addEventListener('click', ()=>{ if(confirm('Remover este '+type+'?')) { div.remove(); updateCargaValues(); } });
       return div;
     }
+
     document.addEventListener('DOMContentLoaded', ()=>{
-      const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList');
+      const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList'), equipEl=document.getElementById('equipList');
+
       document.getElementById('addItem').addEventListener('click', ()=>{ itemCount++; itensEl.appendChild(createCard('item', itemCount, {nome:'', peso:''})); });
       document.getElementById('addArma').addEventListener('click', ()=>{ armaCount++; armasEl.appendChild(createCard('arma', armaCount, {nome:'', dano:'', bonus:''})); });
       document.getElementById('addMagia').addEventListener('click', ()=>{ magiaCount++; magiasEl.appendChild(createCard('magia', magiaCount, {nome:'', desc:''})); });
+
+      document.getElementById('addEquip').addEventListener('click', ()=>{ equipCount++; equipEl.appendChild(createCard('equip', equipCount, {nome:'', peso:0})); updateCargaValues(); });
+      document.getElementById('clearEquip').addEventListener('click', ()=>{ if(confirm('Remover todos os equipamentos?')){ equipEl.innerHTML=''; equipCount=0; updateCargaValues(); } });
+
+      // cria 5 linhas de ataque iniciais
+      const attacksTbody = document.getElementById('attacksTbody');
+      for(let i=1;i<=5;i++){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><input type="text" class="atk-nome" data-i="${i}"></td>
+                        <td><input type="number" class="atk-bonus" data-i="${i}" value="0"></td>
+                        <td><input type="text" class="atk-dano" data-i="${i}"></td>
+                        <td><input type="text" class="atk-crit" data-i="${i}"></td>
+                        <td><input type="text" class="atk-tipo" data-i="${i}"></td>
+                        <td><input type="text" class="atk-alc" data-i="${i}"></td>`;
+        attacksTbody.appendChild(tr);
+      }
+
+      // att listeners to update carga when equip changes
+      equipEl.addEventListener('input', updateCargaValues);
+      document.getElementById('forca').addEventListener('input', updateCargaValues);
+      // init carga
+      updateCargaValues();
+
     });
+
     window._cardsAPI = {
       createCard,
       getAllData: function(){
         const itens = Array.from(document.querySelectorAll('#itens .card')).map(c=>{
           if(c.dataset.type!=='item') return null;
           const name = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value||'');
-          const peso = c.querySelector('.display-peso') ? c.querySelector('.display-peso').textContent : (c.querySelector('.field-peso')?.value||'');
+          const peso = c.querySelector('.display-peso') ? Number(c.querySelector('.display-peso').textContent||0) : Number(c.querySelector('.field-peso')?.value||0);
           return { nome: name, peso: peso };
         }).filter(Boolean);
         const armas = Array.from(document.querySelectorAll('#armas .card')).map(c=>{
           if(c.dataset.type!=='arma') return null;
           const nome = c.querySelector('.display-nome') ? c.querySelector('.display-nome').textContent : (c.querySelector('.field-nome')?.value||'');
           const dano = c.querySelector('.display-dano') ? c.querySelector('.display-dano').textContent : (c.querySelector('.field-dano')?.value||'');
-          const bonus = c.querySelector('.display-bonus') ? c.querySelector('.display-bonus').textContent : (c.querySelector('.field-bonus')?.value||'');
+          const bonus = c.querySelector('.display-bonus') ? Number(c.querySelector('.display-bonus').textContent||0) : Number(c.querySelector('.field-bonus')?.value||0);
           return { nome, dano, bonus };
         }).filter(Boolean);
         const magias = Array.from(document.querySelectorAll('#magiasList .card')).map(c=>{
@@ -222,21 +355,50 @@
           const desc = c.querySelector('.display-desc') ? c.querySelector('.display-desc').textContent : (c.querySelector('.field-desc')?.value||'');
           return { nome, desc };
         }).filter(Boolean);
-        return { itens, armas, magias };
+        const equips = Array.from(document.querySelectorAll('#equipList .card')).map(c=>{
+          if(c.dataset.type!=='equip') return null;
+          const nome = c.querySelector('.display-name') ? c.querySelector('.display-name').textContent : (c.querySelector('.field-nome')?.value||'');
+          const peso = c.querySelector('.display-peso') ? Number(c.querySelector('.display-peso').textContent||0) : Number(c.querySelector('.field-peso')?.value||0);
+          return { nome, peso };
+        }).filter(Boolean);
+
+        // ataques
+        const ataques = [];
+        Array.from(document.querySelectorAll('#attacksTbody tr')).forEach((tr,i)=>{
+          const idx = i+1;
+          const nome = tr.querySelector('.atk-nome')?.value||'';
+          const bonus = Number(tr.querySelector('.atk-bonus')?.value||0);
+          const dano = tr.querySelector('.atk-dano')?.value||'';
+          const crit = tr.querySelector('.atk-crit')?.value||'';
+          const tipo = tr.querySelector('.atk-tipo')?.value||'';
+          const alc = tr.querySelector('.atk-alc')?.value||'';
+          if(nome||dano||bonus||crit||tipo||alc) ataques.push({ nome, bonus, dano, crit, tipo, alcance:alc });
+        });
+
+        return { itens, armas, magias, equips, ataques };
       },
       loadAllData: function(obj){
-        const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList');
-        itensEl.innerHTML=''; armasEl.innerHTML=''; magiasEl.innerHTML='';
-        itemCount = armaCount = magiaCount = 0;
+        const itensEl=document.getElementById('itens'), armasEl=document.getElementById('armas'), magiasEl=document.getElementById('magiasList'), equipEl=document.getElementById('equipList');
+        itensEl.innerHTML=''; armasEl.innerHTML=''; magiasEl.innerHTML=''; equipEl.innerHTML='';
+        itemCount = armaCount = magiaCount = equipCount = 0;
         if(obj.itens && Array.isArray(obj.itens)){ obj.itens.forEach(it=>{ itemCount++; itensEl.appendChild(createCard('item', itemCount, { nome: it.nome||'', peso: it.peso||'', viewOnly:true })); }); }
         if(obj.armas && Array.isArray(obj.armas)){ obj.armas.forEach(a=>{ armaCount++; armasEl.appendChild(createCard('arma', armaCount, { nome: a.nome||'', dano: a.dano||'', bonus: a.bonus||'', viewOnly:true })); }); }
         if(obj.magias && Array.isArray(obj.magias)){ obj.magias.forEach(m=>{ magiaCount++; magiasEl.appendChild(createCard('magia', magiaCount, { nome: m.nome||'', desc: m.desc||'', viewOnly:true })); }); }
+        if(obj.equips && Array.isArray(obj.equips)){ obj.equips.forEach(eq=>{ equipCount++; equipEl.appendChild(createCard('equip', equipCount, { nome: eq.nome||'', peso: eq.peso||'', viewOnly:true })); }); }
+        if(obj.ataques && Array.isArray(obj.ataques)){
+          const rows = document.querySelectorAll('#attacksTbody tr');
+          rows.forEach((tr,i)=>{
+            const a = obj.ataques[i];
+            if(a){ tr.querySelector('.atk-nome').value = a.nome||''; tr.querySelector('.atk-bonus').value = a.bonus||0; tr.querySelector('.atk-dano').value = a.dano||''; tr.querySelector('.atk-crit').value = a.crit||''; tr.querySelector('.atk-tipo').value = a.tipo||''; tr.querySelector('.atk-alc').value = a.alcance||''; }
+          });
+        }
+        updateCargaValues();
       }
     };
   })();
   </script>
 
-  <!-- script principal (perícias + mods automáticos corrigido) -->
+  <!-- script principal (perícias + mods automáticos corrigido + carga) -->
   <script>
   (function(){
     const SKILLS = [
@@ -270,43 +432,44 @@
       { key:'vont', label:'Vontade', attr:'modSab' }
     ];
 
-    const skillsContainer = document.getElementById('skillsContainer');
+    const skillsContainer = document.getElementById('skillsContainer') || document.createElement('div');
     const nivelEl = document.getElementById('nivel');
     const autoModsEl = document.getElementById('autoMods');
 
-    // renderiza perícias
-    SKILLS.forEach(s=>{
-      const row = document.createElement('div');
-      row.className = 'skill-row';
-      row.id = 'skill_'+s.key;
+    // renderiza perícias se container existe (se sua versão antiga já tem)
+    if(document.getElementById('skillsContainer')){
+      SKILLS.forEach(s=>{
+        const row = document.createElement('div');
+        row.className = 'skill-row';
+        row.id = 'skill_'+s.key;
 
-      const nameDiv = document.createElement('div');
-      nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
-      row.appendChild(nameDiv);
+        const nameDiv = document.createElement('div');
+        nameDiv.innerHTML = `<div class="name">${s.label}</div><div class="tiny muted">${s.attr.replace('mod','').toUpperCase()}</div>`;
+        row.appendChild(nameDiv);
 
-      const trainedWrap = document.createElement('div');
-      trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
-      trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
-      row.appendChild(trainedWrap);
+        const trainedWrap = document.createElement('div');
+        trainedWrap.style.display='flex'; trainedWrap.style.alignItems='center';
+        trainedWrap.innerHTML = `<label class="tiny"><input type="checkbox" class="trained" data-key="${s.key}"> Trein.</label>`;
+        row.appendChild(trainedWrap);
 
-      const extraWrap = document.createElement('div');
-      extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
-      row.appendChild(extraWrap);
+        const extraWrap = document.createElement('div');
+        extraWrap.innerHTML = `<input type="number" class="extra" data-key="${s.key}" value="0" title="Outros modificadores">`;
+        row.appendChild(extraWrap);
 
-      const attrWrap = document.createElement('div');
-      attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
-      row.appendChild(attrWrap);
+        const attrWrap = document.createElement('div');
+        attrWrap.innerHTML = `<input type="number" class="attrmod" data-attr="${s.attr}" data-key="${s.key}" value="0" readonly title="Modificador de atributo usado">`;
+        row.appendChild(attrWrap);
 
-      const totalWrap = document.createElement('div');
-      totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
-      row.appendChild(totalWrap);
+        const totalWrap = document.createElement('div');
+        totalWrap.innerHTML = `<input type="number" class="total" data-key="${s.key}" value="0" readonly title="Total da perícia">`;
+        row.appendChild(totalWrap);
 
-      skillsContainer.appendChild(row);
-    });
+        skillsContainer.appendChild(row);
+      });
+    }
 
     function getAttrEl(name){ return document.getElementById(name); }
 
-    // converte score para modifier usando a tabela
     function getModifierFromScore(score){
       score = Number(score) || 0;
       if(score <= 1) return -5;
@@ -325,7 +488,6 @@
       return 7 + Math.floor((score - 25) / 2);
     }
 
-    // MAPEAMENTO EXPLÍCITO attrId -> modId
     const ATTR_TO_MOD = {
       forca: 'modFor',
       destreza: 'modDes',
@@ -335,7 +497,6 @@
       car: 'modCar'
     };
 
-    // atualiza campos de mod (modFor/modDes/...) a partir dos atributos caso autoMods ativo
     function maybeAutoCalcMods(){
       const auto = !!autoModsEl.checked;
       Object.keys(ATTR_TO_MOD).forEach(attrId=>{
@@ -352,12 +513,11 @@
       });
     }
 
-    // preenche attrmod por perícia a partir dos campos mod*
     function updateAttrModsForSkills(){
       SKILLS.forEach(s=>{
         const attrInput = document.querySelector(`#skill_${s.key} .attrmod`);
         const global = getAttrEl(s.attr);
-        attrInput.value = global ? Number(global.value || 0) : 0;
+        if(attrInput) attrInput.value = global ? Number(global.value || 0) : 0;
       });
     }
 
@@ -368,6 +528,7 @@
       const half = halfLevel();
       SKILLS.forEach(s=>{
         const row = document.getElementById('skill_'+s.key);
+        if(!row) return;
         const trainedChecked = row.querySelector('.trained').checked;
         const extra = Number(row.querySelector('.extra').value || 0);
         const attr = Number(row.querySelector('.attrmod').value || 0);
@@ -380,37 +541,34 @@
         }
         row.querySelector('.total').value = total;
       });
+      updateCargaValues();
     }
 
     // listeners
-    nivelEl.addEventListener('input', recalcAll);
+    if(nivelEl) nivelEl.addEventListener('input', recalcAll);
 
     ['forca','destreza','const','int','sab','car'].forEach(id=>{
       const el = document.getElementById(id);
-      el.addEventListener('input', ()=>{ maybeAutoCalcMods(); recalcAll(); });
+      if(el) el.addEventListener('input', ()=>{ maybeAutoCalcMods(); recalcAll(); });
     });
 
-    // react to manual mod edits too
-    document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{
-      el.addEventListener('input', ()=>{ recalcAll(); });
-    });
+    document.querySelectorAll('#sheet input[type="number"]').forEach(el=>{ el.addEventListener('input', ()=>{ recalcAll(); }); });
+    if(document.getElementById('skillsContainer')) document.getElementById('skillsContainer').addEventListener('input', recalcAll);
+    if(autoModsEl) autoModsEl.addEventListener('change', ()=>{ maybeAutoCalcMods(); recalcAll(); });
 
-    skillsContainer.addEventListener('input', recalcAll);
-
-    autoModsEl.addEventListener('change', ()=>{
-      maybeAutoCalcMods();
-      recalcAll();
-    });
-
-    // init
     maybeAutoCalcMods();
     recalcAll();
 
-    // ---------- salvar/carregar JSON (inclui cards) ----------
+    // ---------- salvar/carregar JSON (inclui cards e novos campos) ----------
     function gatherData(){
-      const cardsData = window._cardsAPI && window._cardsAPI.getAllData ? window._cardsAPI.getAllData() : {itens:[],armas:[],magias:[]};
+      const cardsData = window._cardsAPI && window._cardsAPI.getAllData ? window._cardsAPI.getAllData() : {itens:[],armas:[],magias:[],equips:[],ataques:[]};
+      const ataques = cardsData.ataques || [];
       const data = {
-        meta: { nome: document.getElementById('nome').value || '', jogador: document.getElementById('jogador').value || '' },
+        meta: {
+          nome: document.getElementById('nome').value || '',
+          jogador: document.getElementById('jogador').value || '',
+          raca: document.getElementById('raca').value || ''
+        },
         nivel: Number(document.getElementById('nivel').value || 1),
         atributos: {
           forca: Number(document.getElementById('forca').value || 10),
@@ -428,12 +586,42 @@
           modSab: Number(document.getElementById('modSab').value || 0),
           modCar: Number(document.getElementById('modCar').value || 0)
         },
+        pvs: {
+          max: Number(document.getElementById('pvsMax').value||0),
+          atual: Number(document.getElementById('pvsAtual').value||0)
+        },
+        pms: {
+          max: Number(document.getElementById('pmsMax').value||0),
+          atual: Number(document.getElementById('pmsAtual').value||0)
+        },
+        defesa: {
+          caTotal: Number(document.getElementById('caTotal').value||0),
+          caBase: Number(document.getElementById('caBase').value||0),
+          bonusArm: Number(document.getElementById('bonusArm').value||0),
+          bonusEsc: Number(document.getElementById('bonusEsc').value||0),
+          penalidadeArm: Number(document.getElementById('penalidadeArm').value||0),
+          outrosDef: Number(document.getElementById('outrosDef').value||0),
+          armaduraNome: document.getElementById('armaduraNome').value||'',
+          pArmadura: Number(document.getElementById('pArmadura').value||0),
+          escudoNome: document.getElementById('escudoNome').value||'',
+          pEscudo: Number(document.getElementById('pEscudo').value||0),
+          proficiencias: document.getElementById('proficiencias').value||'',
+          tamanho: document.getElementById('tamanho').value||'Médio',
+          desloc: Number(document.getElementById('desloc').value||0)
+        },
         skills: {},
         cards: cardsData,
-        autoMods: !!autoModsEl.checked
+        autoMods: !!autoModsEl.checked,
+        carga: {
+          cargaMax: Number(document.getElementById('cargaMax').value||0),
+          levantar: Number(document.getElementById('levantar').value||0),
+          cargaTotal: Number(document.getElementById('cargaTotal').value||0),
+          penalCarga: document.getElementById('penalCarga').value||''
+        }
       };
       SKILLS.forEach(s=>{
         const row = document.getElementById('skill_'+s.key);
+        if(!row) return;
         data.skills[s.key] = {
           label: s.label,
           attr: s.attr,
@@ -442,6 +630,17 @@
           attrmod: Number(row.querySelector('.attrmod').value || 0),
           total: Number(row.querySelector('.total').value || 0)
         };
+      });
+      // ataques explicit
+      data.ataques = [];
+      Array.from(document.querySelectorAll('#attacksTbody tr')).forEach((tr,i)=>{
+        const nome = tr.querySelector('.atk-nome')?.value||'';
+        const bonus = Number(tr.querySelector('.atk-bonus')?.value||0);
+        const dano = tr.querySelector('.atk-dano')?.value||'';
+        const crit = tr.querySelector('.atk-crit')?.value||'';
+        const tipo = tr.querySelector('.atk-tipo')?.value||'';
+        const alc = tr.querySelector('.atk-alc')?.value||'';
+        if(nome||dano||bonus||crit||tipo||alc) data.ataques.push({ nome, bonus, dano, crit, tipo, alcance:alc });
       });
       return data;
     }
@@ -477,6 +676,20 @@
             if(el) el.value = data.mods[k];
           });
         }
+        if(data.pvs){
+          if(data.pvs.max!==undefined) document.getElementById('pvsMax').value = data.pvs.max;
+          if(data.pvs.atual!==undefined) document.getElementById('pvsAtual').value = data.pvs.atual;
+        }
+        if(data.pms){
+          if(data.pms.max!==undefined) document.getElementById('pmsMax').value = data.pms.max;
+          if(data.pms.atual!==undefined) document.getElementById('pmsAtual').value = data.pms.atual;
+        }
+        if(data.defesa){
+          Object.keys(data.defesa).forEach(k=>{
+            const el = document.getElementById(k);
+            if(el) el.value = data.defesa[k];
+          });
+        }
         if(data.skills){
           Object.keys(data.skills).forEach(sk=>{
             const sdata = data.skills[sk];
@@ -486,6 +699,13 @@
               row.querySelector('.extra').value = sdata.extra || 0;
               if(sdata.attrmod !== undefined) row.querySelector('.attrmod').value = sdata.attrmod;
             }
+          });
+        }
+        if(data.ataques){
+          const rows = document.querySelectorAll('#attacksTbody tr');
+          rows.forEach((tr,i)=>{
+            const a = data.ataques[i];
+            if(a){ tr.querySelector('.atk-nome').value = a.nome||''; tr.querySelector('.atk-bonus').value = a.bonus||0; tr.querySelector('.atk-dano').value = a.dano||''; tr.querySelector('.atk-crit').value = a.crit||''; tr.querySelector('.atk-tipo').value = a.tipo||''; tr.querySelector('.atk-alc').value = a.alcance||''; }
           });
         }
         if(data.cards && window._cardsAPI && window._cardsAPI.loadAllData) window._cardsAPI.loadAllData(data.cards);
@@ -502,54 +722,220 @@
 
     // recalcula periodicamente (segurança)
     setInterval(recalcAll, 1000);
+
+    // ------- CARGA / EQUIP logic -------
+    function updateCargaValues(){
+      // calcular carga máxima e levantar baseado na Força
+      const forca = Number(document.getElementById('forca').value||10);
+      const cargaMax = forca * 3;
+      const levantar = forca * 10;
+      document.getElementById('cargaMax').value = cargaMax;
+      document.getElementById('levantar').value = levantar;
+
+      // soma pesos dos equipamentos
+      const items = Array.from(document.querySelectorAll('#equipList .card')).map(c=>{
+        const pesoEl = c.querySelector('.display-peso') || c.querySelector('.field-peso');
+        const peso = pesoEl ? Number(pesoEl.textContent || pesoEl.value || 0) : 0;
+        return peso;
+      });
+      const total = items.reduce((s,n)=>s + (Number(n)||0),0);
+      document.getElementById('cargaTotal').value = total;
+
+      // penalidade
+      const penEl = document.getElementById('penalCarga');
+      if(total > cargaMax){
+        penEl.value = '-2 (sobrepeso) — Desloc. reduzido em 3m';
+        // reduzir deslocamento visualmente (não sobrescreve campo original)
+        const deslocBase = Number(document.getElementById('desloc').value||0);
+        // note: não alteramos permanentemente o campo desloc — só mostramos aviso na penalidade.
+      } else {
+        penEl.value = 'Nenhuma';
+      }
+    }
+
+    // chamada quando o usuário atualiza manualmente força etc.
+    document.getElementById('forca').addEventListener('input', updateCargaValues);
+
   })();
   </script>
+
+  <!-- PDF-lib (mantido) e script para preenchimento inteligente -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <script>
-    let originalPdf;
-  
-    // Carrega o PDF enviado
+  (function(){
+    let originalPdf = null;
+    const statusEl = document.getElementById('pdfStatus');
+
     document.getElementById("fileLoaderPdf").addEventListener("change", async (e) => {
       const file = e.target.files[0];
-      if (!file) return;
-      const arrayBuffer = await file.arrayBuffer();
-      originalPdf = arrayBuffer;
-      alert("PDF carregado!");
+      if (!file) { statusEl.textContent = 'Nenhum PDF selecionado'; return; }
+      try{
+        originalPdf = await file.arrayBuffer();
+        statusEl.textContent = 'PDF carregado: ' + file.name;
+      }catch(err){
+        statusEl.textContent = 'Erro ao carregar PDF';
+      }
     });
-  
-    // Preenche e baixa o PDF
-    document.getElementById("btnExportPdf").addEventListener("click", async () => {
-      if (!originalPdf) return alert("Carregue primeiro o PDF editável!");
-  
-      const pdfDoc = await PDFLib.PDFDocument.load(originalPdf);
+
+    function findAndSetText(form, candidates, text){
+      // candidates: array de possíveis nomes/parciais; tenta encontrar campo cujo nome contenha candidato
+      const fields = form.getFields();
+      for(const c of candidates){
+        const lower = String(c).toLowerCase().trim();
+        for(const f of fields){
+          const n = String(f.getName()).toLowerCase();
+          if(n === lower || n.indexOf(lower) !== -1 || lower.indexOf(n) !== -1){
+            try{
+              // Tentativa de setText se for TextField
+              if(typeof f.setText === 'function') { f.setText(String(text)); return true; }
+            }catch(e){ /* ignore */ }
+          }
+        }
+      }
+      return false;
+    }
+
+    // heurística: mapeia vários campos comuns do PDF (com base no PDF enviado). Se um campo não existir, tentamos alternativas.
+    async function fillPdfFromForm(pdfBytes){
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
       const form = pdfDoc.getForm();
-  
-      // Exemplo de preenchimento
-      form.getTextField("NOME DO PERSONAGEM").setText(
-        document.getElementById("nome").value
-      );
-      form.getTextField("JOGADOR").setText(
-        document.getElementById("jogador").value
-      );
-      form.getTextField("RAÇA").setText(
-        document.getElementById("raca").value
-      );
-      form.getTextField("Lv").setText(
-        document.getElementById("nivel").value
-      );
-  
-      // TODO: repetir para cada campo do PDF (For, Des, PVs, Perícias, etc.)
-  
-      // Mantém como PDF editável
-      const pdfBytes = await pdfDoc.save();
-  
-      // Download
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "ficha-preenchida.pdf";
-      link.click();
+      // Dados do form html
+      const dataJson = (window && window._lastGathered) ? window._lastGathered : null;
+      // se não tiver, gera agora
+      const gather = window && window.__gatherDataInline ? window.__gatherDataInline : null;
+
+      // Use gatherData direto (evita dependência externa)
+      const getData = () => {
+        try{
+          return (typeof window !== 'undefined' && window.gatherData) ? window.gatherData() : null;
+        }catch(e){ return null; }
+      };
+
+      const data = getData() || (window && window._lastGathered) || (function(){ return {}; })();
+
+      // campo auxiliar para escrever vários candidatos
+      const S = (arr)=>Array.isArray(arr)?arr:[arr];
+
+      // Mapeamentos exemplares — tentamos várias alternativas de nome
+      // IDENTIFICAÇÃO
+      findAndSetText(form, S(['NOME DO PERSONAGEM','NOME','nome do personagem','PERSONAGEM']), document.getElementById('nome').value || '');
+      findAndSetText(form, S(['JOGADOR','JOGADOR:','jogador']), document.getElementById('jogador').value || '');
+      findAndSetText(form, S(['RAÇA','RACA','RACA:']), document.getElementById('raca').value || '');
+      findAndSetText(form, S(['ORIGEM','ORIGEM:']), document.getElementById('origem').value || '');
+      findAndSetText(form, S(['CLASSE','CLASSE:']), document.getElementById('classe').value || '');
+      findAndSetText(form, S(['Lv','LV','NÍVEL','NIVEL']), document.getElementById('nivel').value || '');
+      findAndSetText(form, S(['DIVINDADE','DIVINDADE']), document.getElementById('divindade').value || '');
+
+      // ATRIBUTOS (muitos PDFs usam nomes simples como For, Des, Int, etc.)
+      findAndSetText(form, S(['For','FOR','Força','FORCA','FOR:','For:']), document.getElementById('forca').value || '');
+      findAndSetText(form, S(['ModFor','ModFor:','modfor']), document.getElementById('modFor').value || '');
+      findAndSetText(form, S(['Des','DES','Des:','Destreza','DESTREZA']), document.getElementById('destreza').value || '');
+      findAndSetText(form, S(['ModDes','modDes','ModDes:']), document.getElementById('modDes').value || '');
+      findAndSetText(form, S(['Con','CON','Con:','Constituição','CONST','CONSTIT']), document.getElementById('const').value || '');
+      findAndSetText(form, S(['ModCon','modCon','ModCon:']), document.getElementById('modCon').value || '');
+      findAndSetText(form, S(['Int','INT','Int:']), document.getElementById('int').value || '');
+      findAndSetText(form, S(['ModInt','modInt']), document.getElementById('modInt').value || '');
+      findAndSetText(form, S(['Sab','SAB','Sab:']), document.getElementById('sab').value || '');
+      findAndSetText(form, S(['ModSab','modSab']), document.getElementById('modSab').value || '');
+      findAndSetText(form, S(['Car','CAR','Car:']), document.getElementById('car').value || '');
+      findAndSetText(form, S(['ModCar','modCar']), document.getElementById('modCar').value || '');
+
+      // PV / PM
+      findAndSetText(form, S(['PVs Totais','PVs Totais:','PVs Totais','PVsTotais','PVsMax','PVSTOTAIS','pvs max']), document.getElementById('pvsMax').value || '');
+      findAndSetText(form, S(['PVs Atuais','PVs Atuais:','pvs atual','pvsAtual']), document.getElementById('pvsAtual').value || '');
+      findAndSetText(form, S(['PMs Totais','PMs Totais:','pms max','pmsMax']), document.getElementById('pmsMax').value || '');
+      findAndSetText(form, S(['PMs Atuais','PMs Atuais:','pms atual','pmsAtual']), document.getElementById('pmsAtual').value || '');
+
+      // ATAQUES (tentamos mapear até 5 slots; nomes no PDF podem ser "Ataque 1", "Bônus Atq 1", etc.)
+      for(let i=1;i<=5;i++){
+        const row = document.querySelector(`#attacksTbody tr:nth-child(${i})`);
+        if(!row) continue;
+        const nome = row.querySelector('.atk-nome')?.value||'';
+        const bonus = row.querySelector('.atk-bonus')?.value||'';
+        const dano = row.querySelector('.atk-dano')?.value||'';
+        const crit = row.querySelector('.atk-crit')?.value||'';
+        const tipo = row.querySelector('.atk-tipo')?.value||'';
+        const alc = row.querySelector('.atk-alc')?.value||'';
+        // várias alternativas de nome de campo conforme PDF
+        findAndSetText(form, S([`Ataque ${i}`, `Ataque ${i}:`, `Ataque${i}`, `ATAQUE ${i}`]), nome);
+        findAndSetText(form, S([`Bônus Atq ${i}`, `Bonus Atq ${i}`, `BônusAtq${i}`, `Bônus Atq ${i}:`]), bonus);
+        findAndSetText(form, S([`Dano ${i}`, `Dano ${i}:`, `DANO ${i}`]), dano);
+        findAndSetText(form, S([`Crítico ${i}`, `Crítico ${i}:`, `Crit ${i}`]), crit);
+        findAndSetText(form, S([`Tipo ${i}`, `Tipo ${i}:`]), tipo);
+        findAndSetText(form, S([`Alcance ${i}`, `Alcance ${i}:`]), alc);
+      }
+
+      // DEFESA / ARMADURA
+      findAndSetText(form, S(['CA','CA:','CA Total','CA Total:','CA: 10']), document.getElementById('caTotal').value || '');
+      findAndSetText(form, S(['Base CA','BaseCA','Base CA:','Base CA']), document.getElementById('caBase').value || '');
+      findAndSetText(form, S(['Bônus de Armadura','Bonus de Armadura','bonusArm','Bônus Armadura']), document.getElementById('bonusArm').value || '');
+      findAndSetText(form, S(['Bônus de Escudo','Bonus de Escudo','bonusEsc','Bônus Escudo']), document.getElementById('bonusEsc').value || '');
+      findAndSetText(form, S(['Penalidade de Armadura','penalidadeArm']), document.getElementById('penalidadeArm').value || '');
+      findAndSetText(form, S(['Armadura','Armadura:','armaduraNome']), document.getElementById('armaduraNome').value || '');
+      findAndSetText(form, S(['Escudo','Escudo:','escudoNome']), document.getElementById('escudoNome').value || '');
+      findAndSetText(form, S(['Proficiências','Proficiências','proficiencias']), document.getElementById('proficiencias').value || '');
+
+      // TAMANHO / DESLOCAMENTO
+      findAndSetText(form, S(['SeleTamanho','Tamanho','TAMANHO','SeleTamanho']), document.getElementById('tamanho').value || '');
+      findAndSetText(form, S(['Desloc','Deslocamento','Desloc:','Deslocamento (m)']), document.getElementById('desloc').value || '');
+
+      // EQUIPAMENTOS: tentamos preencher itens sequenciais do PDF Item1..Item15
+      const equips = Array.from(document.querySelectorAll('#equipList .card')).map(c=>({
+        nome: c.querySelector('.display-name')?.textContent||c.querySelector('.field-nome')?.value||'',
+        peso: c.querySelector('.display-peso')?.textContent||c.querySelector('.field-peso')?.value||'0'
+      }));
+      equips.slice(0,15).forEach((eq,i)=>{
+        const idx = i+1;
+        findAndSetText(form, S([`Item${idx}`, `Item ${idx}`, `Item ${idx}:`, `Item${idx}:`]), eq.nome);
+        findAndSetText(form, S([`PesoItem${idx}`, `PesoItem ${idx}`, `Peso Item ${idx}`]), eq.peso);
+      });
+
+      // Carga maxima / levantar
+      findAndSetText(form, S(['CargaMax','CargaMax:','Carga Máxima','Carga Máxima:']), document.getElementById('cargaMax').value || '');
+      findAndSetText(form, S(['Levantar','Levantar:','Levantar']), document.getElementById('levantar').value || '');
+      findAndSetText(form, S(['CargaTotal','Carga Total','CargaTotal:']), document.getElementById('cargaTotal').value || '');
+
+      // notas / magias / anotações
+      findAndSetText(form, S(['Magias','Magias:','Magias: ']), document.getElementById('magiasList') ? '' : '');
+      findAndSetText(form, S(['Anotações','Anotacoes','Anotações:']), '');
+
+      // salvar e retornar bytes
+      const pdfBytesOut = await pdfDoc.save();
+      return pdfBytesOut;
+    }
+
+    document.getElementById("btnExportPdf").addEventListener("click", async () => {
+      if (!originalPdf) return alert("Carregue primeiro o PDF editável (botão ao lado).");
+      try{
+        // cria snapshot dos dados atuais para possibilitar debug
+        if(typeof window !== 'undefined' && typeof window.__lastGathered === 'undefined'){
+          window.gatherData = function(){ return (function(){ try{ const fn = (function(){ return (window && window.gatherData) ? window.gatherData() : null; }); return fn() || {}; }catch(e){ return {}; } })(); };
+        }
+        // Garante que funções internas que usamos para obter os dados existam:
+        window.gatherData = function(){
+          try{
+            // tentamos usar a função gatherData definida no script principal; se não existir, criamos um leve fallback
+            return (typeof window !== 'undefined' && typeof window.gatherData === 'function' && window.gatherData !== arguments.callee) ? (function(){
+              try { return JSON.parse(JSON.stringify((typeof window !== 'undefined' && window.__gather_data_cache) ? window.__gather_data_cache : (function(){ return {}; })())); } catch(e) { return {}; }
+            })() : {};
+          }catch(e){ return {}; }
+        };
+
+        // Para evitar dependência, chamamos a rotina fillPdfFromForm com leitura direta do DOM
+        const bytesOut = await fillPdfFromForm(originalPdf);
+        const blob = new Blob([bytesOut], { type: "application/pdf" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = (document.getElementById('nome').value || 'ficha-preenchida') + '.pdf';
+        link.click();
+        statusEl.textContent = 'Exportado.';
+      }catch(err){
+        console.error(err);
+        alert('Erro ao preencher/exportar PDF: ' + (err && err.message ? err.message : String(err)));
+      }
     });
+
+  })();
   </script>
 </body>
 </html>
